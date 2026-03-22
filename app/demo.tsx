@@ -2,6 +2,42 @@
 "use client";
 import { useState, useRef, useEffect } from "react";
 
+const theme = {
+  blue: "#0071e3",
+  blueHover: "#0077ED",
+  blueLight: "#E8F0FE",
+  blueMuted: "#d1e3fa",
+  bgPage: "#f5f5f7",
+  bgCard: "#ffffff",
+  textPrimary: "#1d1d1f",
+  textSecondary: "#86868b",
+  textTertiary: "#aeaeb2",
+  border: "#d2d2d7",
+  borderLight: "#e8e8ed",
+  divider: "#f0f0f5",
+  statusGreenBg: "#e8f5e9",
+  statusGreenBorder: "#c8e6c9",
+  statusGreenText: "#1b5e20",
+  statusYellowBg: "#fff8e1",
+  statusYellowBorder: "#fff0b3",
+  statusYellowText: "#7a6200",
+  statusRedBg: "#fce4ec",
+  statusRedBorder: "#f8bbd0",
+  statusRedText: "#b71c1c",
+  shadowSm: "0 1px 3px rgba(0,0,0,0.08)",
+  shadowMd: "0 2px 8px rgba(0,0,0,0.08)",
+  shadowInput: "0 1px 4px rgba(0,0,0,0.06)",
+  radiusSm: 8,
+  radiusMd: 12,
+  radiusLg: 16,
+  radiusXl: 20,
+  radiusPill: 980,
+  fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, 'SF Pro Text', system-ui, sans-serif",
+  fontMono: "'JetBrains Mono', 'SF Mono', monospace",
+  transition: "0.3s ease",
+  transitionFast: "0.15s ease",
+};
+
 function RenderMD({ text }: { text: string }) {
   if (!text) return null;
   const lines = text.split("\n");
@@ -18,9 +54,9 @@ function RenderMD({ text }: { text: string }) {
       <div key={key++} style={{ overflowX: "auto", margin: "12px 0" }}>
         <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 13 }}>
           <thead>
-            <tr style={{ background: "#f8f7f5" }}>
+            <tr style={{ background: theme.divider }}>
               {headerCells.map((c, i) => (
-                <th key={i} style={{ padding: "8px 12px", textAlign: "left", fontWeight: 600, borderBottom: "2px solid #e8e5e0", color: "#1a1a18", fontSize: 12, whiteSpace: "nowrap" }}>{c.trim()}</th>
+                <th key={i} style={{ padding: "8px 12px", textAlign: "left", fontWeight: 600, borderBottom: `2px solid ${theme.border}`, color: theme.textPrimary, fontSize: 12, whiteSpace: "nowrap" }}>{c.trim()}</th>
               ))}
             </tr>
           </thead>
@@ -28,14 +64,14 @@ function RenderMD({ text }: { text: string }) {
             {dataRows.map((row, ri) => {
               const cells = row.split("|").filter(c => c.trim());
               return (
-                <tr key={ri} style={{ background: ri % 2 === 1 ? "#fafaf8" : "#fff" }}>
+                <tr key={ri} style={{ background: ri % 2 === 1 ? "#fafafa" : "#fff" }}>
                   {cells.map((c, ci) => {
                     const val = c.trim();
                     const isNum = /^\$|^\d/.test(val) || /^\*\*\$/.test(val);
                     const isBold = val.startsWith("**") && val.endsWith("**");
                     const display = isBold ? val.slice(2, -2) : val;
                     return (
-                      <td key={ci} style={{ padding: "7px 12px", borderBottom: "1px solid #f1f0ec", color: "#2d2d2a", textAlign: isNum && ci > 0 ? "right" : "left", fontWeight: isBold ? 700 : 400, fontFamily: isNum ? "'JetBrains Mono', monospace" : "inherit", fontSize: isNum ? 12.5 : 13 }}>{display}</td>
+                      <td key={ci} style={{ padding: "7px 12px", borderBottom: `1px solid ${theme.divider}`, color: theme.textPrimary, textAlign: isNum && ci > 0 ? "right" : "left", fontWeight: isBold ? 700 : 400, fontFamily: isNum ? theme.fontMono : "inherit", fontSize: isNum ? 12.5 : 13 }}>{display}</td>
                     );
                   })}
                 </tr>
@@ -64,27 +100,27 @@ function RenderMD({ text }: { text: string }) {
 
     // Horizontal rule
     if (trimmed === "---" || trimmed === "***") {
-      elements.push(<hr key={key++} style={{ border: "none", borderTop: "1px solid #e8e5e0", margin: "20px 0" }} />);
+      elements.push(<hr key={key++} style={{ border: "none", borderTop: `1px solid ${theme.divider}`, margin: "20px 0" }} />);
       continue;
     }
 
     // Headers
     if (trimmed.startsWith("# ")) {
-      elements.push(<h1 key={key++} style={{ fontSize: 22, fontWeight: 700, margin: "28px 0 8px", color: "#1a1a18", letterSpacing: "-0.02em" }}>{trimmed.slice(2)}</h1>);
+      elements.push(<h1 key={key++} style={{ fontSize: 22, fontWeight: 700, margin: "28px 0 8px", color: theme.textPrimary, letterSpacing: "-0.03em" }}>{trimmed.slice(2)}</h1>);
       continue;
     }
     if (trimmed.startsWith("## ")) {
       const num = trimmed.match(/^## (\d+)\./);
       elements.push(
-        <h2 key={key++} style={{ fontSize: 16, fontWeight: 700, margin: "24px 0 8px", color: "#1a1a18", padding: "10px 0 6px", borderBottom: "2px solid #ea580c", display: "flex", alignItems: "center", gap: 8 }}>
-          {num && <span style={{ background: "#ea580c", color: "#fff", width: 24, height: 24, borderRadius: 6, display: "inline-flex", alignItems: "center", justifyContent: "center", fontSize: 12, fontWeight: 700, flexShrink: 0 }}>{num[1]}</span>}
+        <h2 key={key++} style={{ fontSize: 16, fontWeight: 700, margin: "24px 0 8px", color: theme.textPrimary, padding: "10px 0 6px", borderBottom: `2px solid ${theme.blue}`, display: "flex", alignItems: "center", gap: 8 }}>
+          {num && <span style={{ background: theme.blue, color: "#fff", width: 24, height: 24, borderRadius: 8, display: "inline-flex", alignItems: "center", justifyContent: "center", fontSize: 12, fontWeight: 700, flexShrink: 0 }}>{num[1]}</span>}
           {num ? trimmed.slice(trimmed.indexOf(".") + 2) : trimmed.slice(3)}
         </h2>
       );
       continue;
     }
     if (trimmed.startsWith("### ")) {
-      elements.push(<h3 key={key++} style={{ fontSize: 14, fontWeight: 600, margin: "16px 0 6px", color: "#4a4540" }}>{trimmed.slice(4)}</h3>);
+      elements.push(<h3 key={key++} style={{ fontSize: 14, fontWeight: 600, margin: "16px 0 6px", color: theme.textSecondary }}>{trimmed.slice(4)}</h3>);
       continue;
     }
 
@@ -96,7 +132,7 @@ function RenderMD({ text }: { text: string }) {
 
     // Bold-only lines
     if (trimmed.startsWith("**") && trimmed.endsWith("**") && !trimmed.includes("**", 2)) {
-      elements.push(<p key={key++} style={{ fontSize: 13.5, fontWeight: 700, margin: "12px 0 4px", color: "#1a1a18", lineHeight: 1.5 }}>{trimmed.slice(2, -2)}</p>);
+      elements.push(<p key={key++} style={{ fontSize: 13.5, fontWeight: 700, margin: "12px 0 4px", color: theme.textPrimary, lineHeight: 1.5 }}>{trimmed.slice(2, -2)}</p>);
       continue;
     }
 
@@ -110,10 +146,10 @@ function RenderMD({ text }: { text: string }) {
     for (const part of formatted) {
       if (part === "⟪B⟫") { bold = true; continue; }
       if (part === "⟪/B⟫") { bold = false; continue; }
-      if (part) spans.push(<span key={spans.length} style={bold ? { fontWeight: 600, color: "#1a1a18" } : {}}>{part}</span>);
+      if (part) spans.push(<span key={spans.length} style={bold ? { fontWeight: 600, color: theme.textPrimary } : {}}>{part}</span>);
     }
 
-    elements.push(<p key={key++} style={{ fontSize: 13.5, lineHeight: 1.7, margin: "3px 0", color: "#2d2d2a" }}>{spans}</p>);
+    elements.push(<p key={key++} style={{ fontSize: 13.5, lineHeight: 1.7, margin: "3px 0", color: theme.textPrimary }}>{spans}</p>);
   }
 
   if (inTable) flushTable();
@@ -131,14 +167,15 @@ function RenderAnalysis({ text }: { text: string }) {
     if (!t) { elements.push(<div key={key++} style={{ height: 6 }} />); continue; }
 
     if (t.startsWith("✅ You should") || t.startsWith("❌ Skip") || t.startsWith("⚠️ This is")) {
-      const color = t.startsWith("✅") ? "#166534" : t.startsWith("❌") ? "#991b1b" : "#92400e";
-      const bg = t.startsWith("✅") ? "#dcfce7" : t.startsWith("❌") ? "#fee2e2" : "#fef3c7";
-      elements.push(<div key={key++} style={{ background: bg, color, padding: "12px 16px", borderRadius: 10, fontSize: 16, fontWeight: 700, margin: "0 0 16px" }}>{t}</div>);
+      const color = t.startsWith("✅") ? theme.statusGreenText : t.startsWith("❌") ? theme.statusRedText : theme.statusYellowText;
+      const bg = t.startsWith("✅") ? theme.statusGreenBg : t.startsWith("❌") ? theme.statusRedBg : theme.statusYellowBg;
+      const border = t.startsWith("✅") ? theme.statusGreenBorder : t.startsWith("❌") ? theme.statusRedBorder : theme.statusYellowBorder;
+      elements.push(<div key={key++} style={{ background: bg, color, border: `1px solid ${border}`, padding: "14px 20px", borderRadius: theme.radiusMd, fontSize: 16, fontWeight: 600, margin: "0 0 20px" }}>{t}</div>);
       continue;
     }
 
     if (t === "REQUIREMENTS MATCH" || t === "SCORECARD" || t === "TOP 3 RISKS" || t.startsWith("ESTIMATED PRICE") || t === "REFINE YOUR BID" || t === "ASK ABOUT THIS RFP") {
-      elements.push(<p key={key++} style={{ fontSize: 11, fontWeight: 700, color: "#8b8680", textTransform: "uppercase", letterSpacing: "0.06em", margin: "18px 0 8px", borderBottom: "1px solid #f1f0ec", paddingBottom: 6 }}>{t}</p>);
+      elements.push(<p key={key++} style={{ fontSize: 11, fontWeight: 600, color: theme.textSecondary, textTransform: "uppercase", letterSpacing: "0.08em", margin: "24px 0 10px", borderBottom: `1px solid ${theme.divider}`, paddingBottom: 8 }}>{t}</p>);
       continue;
     }
 
@@ -146,10 +183,10 @@ function RenderAnalysis({ text }: { text: string }) {
       const icon = t.slice(0, 2);
       const rest = t.slice(2).trim().replace(/—/, "").trim();
       const [label, ...desc] = rest.split("—").length > 1 ? rest.split("—") : rest.split(" — ");
-      const bg = icon === "✅" ? "#f0fdf4" : icon === "⚠️" ? "#fffbeb" : "#fef2f2";
-      const border = icon === "✅" ? "#bbf7d0" : icon === "⚠️" ? "#fde68a" : "#fecaca";
+      const bg = icon === "✅" ? theme.statusGreenBg : icon === "⚠️" ? theme.statusYellowBg : theme.statusRedBg;
+      const border = icon === "✅" ? theme.statusGreenBorder : icon === "⚠️" ? theme.statusYellowBorder : theme.statusRedBorder;
       elements.push(
-        <div key={key++} style={{ display: "flex", gap: 10, padding: "8px 12px", background: bg, border: `1px solid ${border}`, borderRadius: 8, margin: "4px 0", fontSize: 13, lineHeight: 1.5 }}>
+        <div key={key++} style={{ display: "flex", gap: 10, padding: "10px 14px", background: bg, border: `1px solid ${border}`, borderRadius: 10, margin: "5px 0", fontSize: 13, lineHeight: 1.6 }}>
           <span style={{ flexShrink: 0 }}>{icon}</span>
           <span>{desc.length ? <><strong>{label.trim()}</strong> — {desc.join("—").trim()}</> : rest}</span>
         </div>
@@ -165,28 +202,28 @@ function RenderAnalysis({ text }: { text: string }) {
         const n = parseInt(score);
         elements.push(
           <div key={key++} style={{ display: "flex", alignItems: "center", gap: 10, padding: "6px 0", fontSize: 13 }}>
-            <span style={{ width: 22, height: 22, borderRadius: 6, background: "#f1f0ec", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 11, fontWeight: 700, color: "#6b6560", flexShrink: 0 }}>{num}</span>
+            <span style={{ width: 22, height: 22, borderRadius: "50%", background: theme.divider, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 11, fontWeight: 700, color: theme.textSecondary, flexShrink: 0 }}>{num}</span>
             <span style={{ flex: 1 }}><strong>{label}</strong></span>
             <div style={{ display: "flex", gap: 3, flexShrink: 0 }}>
-              {[1,2,3,4,5].map(j => <div key={j} style={{ width: 8, height: 8, borderRadius: 2, background: j <= n ? "#ea580c" : "#e8e5e0" }} />)}
+              {[1,2,3,4,5].map(j => <div key={j} style={{ width: 8, height: 8, borderRadius: "50%", background: j <= n ? theme.blue : theme.borderLight }} />)}
             </div>
-            <span style={{ fontSize: 12, fontWeight: 600, color: "#ea580c", minWidth: 28, textAlign: "right" }}>{score}</span>
+            <span style={{ fontSize: 12, fontWeight: 600, color: theme.blue, minWidth: 28, textAlign: "right" }}>{score}</span>
           </div>
         );
-        if (desc.length) elements.push(<p key={key++} style={{ fontSize: 12, color: "#6b6560", margin: "0 0 4px", paddingLeft: 32 }}>{desc.join("—")}</p>);
+        if (desc.length) elements.push(<p key={key++} style={{ fontSize: 12, color: theme.textSecondary, margin: "0 0 4px", paddingLeft: 32 }}>{desc.join("—")}</p>);
         continue;
       }
     }
 
     if (t.startsWith("Total:")) {
-      elements.push(<div key={key++} style={{ background: "#1a1a18", color: "#fff", padding: "10px 16px", borderRadius: 8, fontSize: 15, fontWeight: 700, margin: "10px 0", display: "flex", justifyContent: "space-between" }}>
+      elements.push(<div key={key++} style={{ background: theme.textPrimary, color: "#fff", padding: "12px 20px", borderRadius: 10, fontSize: 15, fontWeight: 700, margin: "10px 0", display: "flex", justifyContent: "space-between" }}>
         <span>{t.split("—")[0].trim()}</span>
-        <span style={{ color: "#fbbf24" }}>{t.split("—")[1]?.trim() || ""}</span>
+        <span style={{ color: "#ffd60a" }}>{t.split("—")[1]?.trim() || ""}</span>
       </div>);
       continue;
     }
 
-    elements.push(<p key={key++} style={{ fontSize: 13.5, lineHeight: 1.6, margin: "3px 0", color: "#2d2d2a" }}>{t}</p>);
+    elements.push(<p key={key++} style={{ fontSize: 13.5, lineHeight: 1.6, margin: "3px 0", color: theme.textPrimary }}>{t}</p>);
   }
   return <>{elements}</>;
 }
@@ -499,97 +536,100 @@ export default function App() {
     : ["Draft just the safety section", "What crew should we assign?", "How does pricing compare to Methodist Dallas?", "What are the biggest risks?"];
 
   return (
-    <div style={{ fontFamily: "'Inter', system-ui, sans-serif", background: "#fafaf8", minHeight: "100vh", color: "#1a1a18" }}>
+    <div style={{ fontFamily: theme.fontFamily, background: theme.bgPage, minHeight: "100vh", color: theme.textPrimary }}>
       <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
 
-      <div style={{ background: "#fff", borderBottom: "1px solid #e8e5e0", padding: "12px 20px", display: "flex", alignItems: "center", justifyContent: "space-between", position: "sticky", top: 0, zIndex: 10 }}>
+      {/* Header — frosted glass */}
+      <div style={{ background: "rgba(255,255,255,0.72)", backdropFilter: "blur(20px) saturate(180%)", WebkitBackdropFilter: "blur(20px) saturate(180%)", borderBottom: "1px solid rgba(0,0,0,0.08)", padding: "14px 24px", display: "flex", alignItems: "center", justifyContent: "space-between", position: "sticky", top: 0, zIndex: 50 }}>
         <div style={{ display: "flex", alignItems: "center", gap: 10, cursor: "pointer" }} onClick={reset}>
-          <div style={{ width: 30, height: 30, borderRadius: 7, background: "#ea580c", display: "flex", alignItems: "center", justifyContent: "center", color: "#fff", fontWeight: 700, fontSize: 13 }}>IF</div>
-          <span style={{ fontWeight: 700, fontSize: 15 }}>Ironflow AI</span>
+          <span style={{ fontWeight: 700, fontSize: 17, color: theme.textPrimary, letterSpacing: "-0.02em" }}>Ironflow<span style={{ color: theme.blue }}> AI</span></span>
         </div>
-        {step !== "upload" && <button onClick={reset} style={{ padding: "5px 12px", borderRadius: 7, border: "1px solid #e8e5e0", background: "#fff", color: "#6b6560", fontSize: 12, fontWeight: 500, cursor: "pointer" }}>New RFP</button>}
+        {step !== "upload" && <button onClick={reset} style={{ padding: "6px 14px", borderRadius: theme.radiusPill, border: `1px solid ${theme.border}`, background: theme.bgCard, color: theme.textSecondary, fontSize: 12, fontWeight: 500, cursor: "pointer", transition: theme.transitionFast }}>New RFP</button>}
       </div>
 
+      {/* Upload page */}
       {step === "upload" && (
-        <div style={{ maxWidth: 560, margin: "0 auto", padding: "56px 20px", textAlign: "center" }}>
-          <div style={{ width: 56, height: 56, borderRadius: 16, background: "#ea580c", display: "flex", alignItems: "center", justifyContent: "center", color: "#fff", fontWeight: 700, fontSize: 24, margin: "0 auto 20px" }}>IF</div>
-          <h1 style={{ fontSize: 26, fontWeight: 700, margin: "0 0 8px" }}>Upload an RFP</h1>
-          <p style={{ fontSize: 15, color: "#6b6560", margin: "0 0 32px", lineHeight: 1.5 }}>We'll check if you can do the job, then<br/>draft your complete bid response.</p>
-          <div onClick={() => fileRef.current?.click()} style={{ border: "2px dashed #d4d0ca", borderRadius: 16, padding: "44px 32px", cursor: "pointer", transition: "all 0.2s", marginBottom: 16, background: "#fff" }}
-            onMouseOver={e => { e.currentTarget.style.borderColor = "#ea580c"; e.currentTarget.style.background = "#fef7f4"; }}
-            onMouseOut={e => { e.currentTarget.style.borderColor = "#d4d0ca"; e.currentTarget.style.background = "#fff"; }}>
+        <div style={{ maxWidth: 600, margin: "0 auto", padding: "80px 24px", textAlign: "center" }}>
+          <div style={{ width: 64, height: 64, borderRadius: theme.radiusXl, background: theme.blueLight, display: "flex", alignItems: "center", justifyContent: "center", color: theme.blue, fontWeight: 700, fontSize: 26, margin: "0 auto 24px" }}>IF</div>
+          <h1 style={{ fontSize: 32, fontWeight: 700, margin: "0 0 10px", letterSpacing: "-0.03em" }}>Upload an RFP</h1>
+          <p style={{ fontSize: 17, color: theme.textSecondary, margin: "0 0 40px", lineHeight: 1.5 }}>We'll check if you can do the job, then<br/>draft your complete bid response.</p>
+          <div onClick={() => fileRef.current?.click()} style={{ border: `2px dashed ${theme.border}`, borderRadius: theme.radiusXl, padding: "56px 40px", cursor: "pointer", transition: `all ${theme.transition}`, marginBottom: 20, background: theme.bgCard, boxShadow: theme.shadowSm }}
+            onMouseOver={e => { e.currentTarget.style.borderColor = theme.blue; e.currentTarget.style.background = theme.blueLight; }}
+            onMouseOut={e => { e.currentTarget.style.borderColor = theme.border; e.currentTarget.style.background = theme.bgCard; }}>
             <div style={{ fontSize: 36, marginBottom: 10 }}>📄</div>
-            <p style={{ fontSize: 14, fontWeight: 600, margin: "0 0 4px" }}>Drop your RFP here, or click to browse</p>
-            <p style={{ fontSize: 12, color: "#8b8680", margin: 0 }}>Supports .txt, .md files</p>
+            <p style={{ fontSize: 15, fontWeight: 500, margin: "0 0 4px", color: theme.textPrimary }}>Drop your RFP here, or click to browse</p>
+            <p style={{ fontSize: 12, color: theme.textTertiary, margin: 0 }}>Supports .txt, .md files</p>
             <input ref={fileRef} type="file" accept=".txt,.md" onChange={handleFile} style={{ display: "none" }} />
           </div>
           <div style={{ display: "flex", alignItems: "center", gap: 12, margin: "16px 0" }}>
-            <div style={{ flex: 1, height: 1, background: "#e8e5e0" }} /><span style={{ fontSize: 11, color: "#a8a39e" }}>OR</span><div style={{ flex: 1, height: 1, background: "#e8e5e0" }} />
+            <div style={{ flex: 1, height: 1, background: theme.borderLight }} /><span style={{ fontSize: 11, color: theme.textTertiary }}>OR</span><div style={{ flex: 1, height: 1, background: theme.borderLight }} />
           </div>
-          <button onClick={runDemo} style={{ padding: "12px 24px", borderRadius: 10, border: "1px solid #ea580c", background: "#fff", color: "#ea580c", fontSize: 13, fontWeight: 600, cursor: "pointer", width: "100%", transition: "all 0.15s" }}
-            onMouseOver={e => { e.currentTarget.style.background = "#ea580c"; e.currentTarget.style.color = "#fff"; }}
-            onMouseOut={e => { e.currentTarget.style.background = "#fff"; e.currentTarget.style.color = "#ea580c"; }}>
+          <button onClick={runDemo} style={{ padding: "14px 28px", borderRadius: theme.radiusPill, border: "none", background: theme.blue, color: "#fff", fontSize: 14, fontWeight: 600, cursor: "pointer", width: "100%", transition: `all ${theme.transition}`, letterSpacing: "-0.01em" }}
+            onMouseOver={e => { e.currentTarget.style.background = theme.blueHover; }}
+            onMouseOut={e => { e.currentTarget.style.background = theme.blue; }}>
             🏥 Try demo — Children's Health Plano Surgical Suite
           </button>
         </div>
       )}
 
+      {/* Analyzing */}
       {step === "analyzing" && (
-        <div style={{ maxWidth: 500, margin: "0 auto", padding: "100px 20px", textAlign: "center" }}>
+        <div style={{ maxWidth: 500, margin: "0 auto", padding: "120px 20px", textAlign: "center" }}>
           <div style={{ display: "flex", justifyContent: "center", gap: 6, marginBottom: 20 }}>
-            {[0,1,2].map(i => <div key={i} style={{ width: 10, height: 10, borderRadius: "50%", background: "#ea580c", animation: `bounce 1.2s ease-in-out ${i*0.2}s infinite` }} />)}
+            {[0,1,2].map(i => <div key={i} style={{ width: 8, height: 8, borderRadius: "50%", background: theme.blue, animation: `pulse-ring 1.4s ease-in-out ${i*0.2}s infinite` }} />)}
           </div>
-          <h2 style={{ fontSize: 18, fontWeight: 700, margin: "0 0 6px" }}>Reading the RFP...</h2>
-          <p style={{ fontSize: 13, color: "#6b6560" }}>Checking against your projects, certs, and crew</p>
+          <h2 style={{ fontSize: 20, fontWeight: 600, margin: "0 0 6px", letterSpacing: "-0.02em" }}>Reading the RFP...</h2>
+          <p style={{ fontSize: 13, color: theme.textSecondary }}>Checking against your projects, certs, and crew</p>
         </div>
       )}
 
+      {/* Results */}
       {step === "results" && (
-        <div style={{ maxWidth: 760, margin: "0 auto", padding: "20px 20px 140px" }}>
+        <div style={{ maxWidth: 800, margin: "0 auto", padding: "28px 24px 160px" }}>
 
           {/* Analysis card */}
           {showAnalysis && (
-            <div style={{ background: "#fff", border: "1px solid #e8e5e0", borderRadius: 14, padding: "22px 26px", marginBottom: 16 }}>
+            <div style={{ background: theme.bgCard, borderRadius: theme.radiusLg, padding: "28px 32px", marginBottom: 20, boxShadow: theme.shadowMd }}>
               <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 14 }}>
                 <div style={{ display: "flex", alignItems: "center", gap: 8 }}><span style={{ fontSize: 18 }}>📋</span><h2 style={{ fontSize: 16, fontWeight: 700, margin: 0 }}>RFP Analysis</h2></div>
-                <span style={{ fontSize: 11, color: "#8b8680", background: "#f1f0ec", padding: "3px 10px", borderRadius: 6 }}>Step 1</span>
+                <span style={{ fontSize: 11, color: theme.blue, background: theme.blueLight, padding: "4px 12px", borderRadius: theme.radiusPill, fontWeight: 600 }}>Step 1</span>
               </div>
               <RenderAnalysis text={showAnalysis} />
-              {typing && typingFor === "analysis" && <span style={{ display: "inline-block", width: 2, height: 16, background: "#ea580c", animation: "blink 0.8s infinite" }} />}
+              {typing && typingFor === "analysis" && <span style={{ display: "inline-block", width: 2, height: 16, background: theme.blue, animation: "blink 0.8s infinite" }} />}
             </div>
           )}
 
           {/* Generate button */}
           {analysis && !bidDoc && !typing && (
-            <button onClick={generateDemoBid} style={{ width: "100%", padding: "16px", borderRadius: 12, border: "none", fontSize: 15, fontWeight: 700, cursor: "pointer", background: "#ea580c", color: "#fff", marginBottom: 16, display: "flex", alignItems: "center", justifyContent: "center", gap: 8 }}>
+            <button onClick={generateDemoBid} style={{ width: "100%", padding: "18px", borderRadius: theme.radiusMd, border: "none", fontSize: 16, fontWeight: 600, cursor: "pointer", background: theme.blue, color: "#fff", marginBottom: 20, display: "flex", alignItems: "center", justifyContent: "center", gap: 8, boxShadow: "0 2px 8px rgba(0,113,227,0.3)", transition: `all ${theme.transition}`, letterSpacing: "-0.01em" }}>
               📝 Generate full bid response
             </button>
           )}
 
           {/* Bid document */}
           {showBid && (
-            <div ref={bidRef} style={{ background: "#fff", border: "1px solid #e8e5e0", borderRadius: 14, padding: "28px 32px", marginBottom: 16 }}>
+            <div ref={bidRef} style={{ background: theme.bgCard, borderRadius: theme.radiusLg, padding: "32px 36px", marginBottom: 20, boxShadow: theme.shadowMd }}>
               <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 16 }}>
                 <div style={{ display: "flex", alignItems: "center", gap: 8 }}><span style={{ fontSize: 18 }}>📝</span><h2 style={{ fontSize: 16, fontWeight: 700, margin: 0 }}>Your Bid Response</h2></div>
                 <div style={{ display: "flex", gap: 6 }}>
-                  {bidDoc && <span style={{ fontSize: 11, color: "#166534", background: "#dcfce7", padding: "3px 10px", borderRadius: 6, fontWeight: 600 }}>Complete</span>}
-                  {bidDoc && <button onClick={() => navigator.clipboard.writeText(bidDoc)} style={{ fontSize: 11, color: "#6b6560", background: "#f1f0ec", padding: "3px 10px", borderRadius: 6, border: "none", cursor: "pointer" }}>Copy</button>}
-                  {typing && typingFor === "bid" && <span style={{ fontSize: 11, color: "#ea580c", background: "#fef3eb", padding: "3px 10px", borderRadius: 6, fontWeight: 600 }}>Generating...</span>}
+                  {bidDoc && <span style={{ fontSize: 11, color: theme.statusGreenText, background: theme.statusGreenBg, padding: "4px 12px", borderRadius: theme.radiusPill, fontWeight: 600 }}>Complete</span>}
+                  {bidDoc && <button onClick={() => navigator.clipboard.writeText(bidDoc)} style={{ fontSize: 11, color: theme.textSecondary, background: theme.divider, padding: "4px 12px", borderRadius: theme.radiusPill, border: "none", cursor: "pointer" }}>Copy</button>}
+                  {typing && typingFor === "bid" && <span style={{ fontSize: 11, color: theme.blue, background: theme.blueLight, padding: "4px 12px", borderRadius: theme.radiusPill, fontWeight: 600 }}>Generating...</span>}
                 </div>
               </div>
               <RenderMD text={showBid} />
-              {typing && typingFor === "bid" && <span style={{ display: "inline-block", width: 2, height: 16, background: "#ea580c", animation: "blink 0.8s infinite" }} />}
+              {typing && typingFor === "bid" && <span style={{ display: "inline-block", width: 2, height: 16, background: theme.blue, animation: "blink 0.8s infinite" }} />}
             </div>
           )}
 
           {/* Suggestions */}
           {(analysis || bidDoc) && !typing && (
             <div style={{ marginBottom: 16 }}>
-              <p style={{ fontSize: 12, fontWeight: 600, color: "#8b8680", marginBottom: 8 }}>{bidDoc ? "REFINE YOUR BID" : "ASK ABOUT THIS RFP"}</p>
+              <p style={{ fontSize: 12, fontWeight: 600, color: theme.textSecondary, marginBottom: 8 }}>{bidDoc ? "REFINE YOUR BID" : "ASK ABOUT THIS RFP"}</p>
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 6 }}>
                 {suggestions.map((q, i) => (
-                  <button key={i} onClick={() => askFollowUp(q)} style={{ padding: "10px 14px", borderRadius: 8, border: "1px solid #e8e5e0", background: "#fff", fontSize: 12.5, color: "#3d3d3a", textAlign: "left", cursor: "pointer", lineHeight: 1.4, transition: "all 0.15s" }}
-                    onMouseOver={e => e.currentTarget.style.borderColor = "#ea580c"} onMouseOut={e => e.currentTarget.style.borderColor = "#e8e5e0"}>{q}</button>
+                  <button key={i} onClick={() => askFollowUp(q)} style={{ padding: "12px 16px", borderRadius: theme.radiusMd, border: `1px solid ${theme.borderLight}`, background: theme.bgCard, fontSize: 13, color: theme.textPrimary, textAlign: "left", cursor: "pointer", lineHeight: 1.5, transition: `all ${theme.transition}`, boxShadow: theme.shadowSm }}
+                    onMouseOver={e => e.currentTarget.style.borderColor = theme.blue} onMouseOut={e => e.currentTarget.style.borderColor = theme.borderLight}>{q}</button>
                 ))}
               </div>
             </div>
@@ -599,32 +639,26 @@ export default function App() {
           {messages.map((msg, i) => (
             <div key={i} style={{ marginBottom: 14, display: "flex", flexDirection: "column", alignItems: msg.role === "user" ? "flex-end" : "flex-start" }}>
               {msg.role === "user"
-                ? <div style={{ maxWidth: "80%", background: "#ea580c", color: "#fff", padding: "10px 16px", borderRadius: "16px 16px 4px 16px", fontSize: 13.5, lineHeight: 1.6 }}>{msg.text}</div>
-                : <div style={{ maxWidth: "92%", background: "#fff", border: "1px solid #e8e5e0", borderRadius: "4px 16px 16px 16px", padding: "16px 20px", fontSize: 13.5, lineHeight: 1.7, color: "#2d2d2a", whiteSpace: "pre-wrap" }}>{msg.text}</div>
+                ? <div style={{ maxWidth: "75%", background: theme.blue, color: "#fff", padding: "12px 18px", borderRadius: "18px 18px 4px 18px", fontSize: 14, lineHeight: 1.6 }}>{msg.text}</div>
+                : <div style={{ maxWidth: "88%", background: theme.divider, borderRadius: "4px 18px 18px 18px", padding: "16px 20px", fontSize: 14, lineHeight: 1.7, color: theme.textPrimary, whiteSpace: "pre-wrap" }}>{msg.text}</div>
               }
             </div>
           ))}
-          {loading && <div style={{ display: "flex", alignItems: "center", gap: 6, padding: "8px 0" }}>{[0,1,2].map(i => <div key={i} style={{ width: 7, height: 7, borderRadius: "50%", background: "#ea580c", animation: `bounce 1s ease-in-out ${i*0.15}s infinite` }} />)}<span style={{ fontSize: 12, color: "#8b8680" }}>Thinking...</span></div>}
+          {loading && <div style={{ display: "flex", alignItems: "center", gap: 6, padding: "8px 0" }}>{[0,1,2].map(i => <div key={i} style={{ width: 7, height: 7, borderRadius: "50%", background: theme.blue, animation: `pulse-ring 1.4s ease-in-out ${i*0.2}s infinite` }} />)}<span style={{ fontSize: 12, color: theme.textSecondary }}>Thinking...</span></div>}
           <div ref={endRef} />
 
-          {/* Input */}
-          <div style={{ position: "fixed", bottom: 0, left: 0, right: 0, background: "#fafaf8", borderTop: "1px solid #e8e5e0", padding: "10px 20px" }}>
-            <div style={{ maxWidth: 760, margin: "0 auto", display: "flex", gap: 8 }}>
+          {/* Input bar — frosted glass */}
+          <div style={{ position: "fixed", bottom: 0, left: 0, right: 0, background: "rgba(245,245,247,0.72)", backdropFilter: "blur(20px) saturate(180%)", WebkitBackdropFilter: "blur(20px) saturate(180%)", borderTop: "1px solid rgba(0,0,0,0.06)", padding: "12px 24px" }}>
+            <div style={{ maxWidth: 800, margin: "0 auto", display: "flex", gap: 8 }}>
               <input value={input} onChange={e => setInput(e.target.value)} onKeyDown={e => { if (e.key === "Enter") askFollowUp(input); }}
                 placeholder={bidDoc ? "Ask to change pricing, rewrite a section..." : "Ask anything about this RFP..."}
-                style={{ flex: 1, padding: "11px 14px", borderRadius: 10, border: "1px solid #e8e5e0", background: "#fff", fontSize: 13.5, outline: "none", color: "#1a1a18" }}
-                onFocus={e => e.target.style.borderColor = "#ea580c"} onBlur={e => e.target.style.borderColor = "#e8e5e0"} />
-              <button onClick={() => askFollowUp(input)} disabled={!input.trim() || loading} style={{ padding: "11px 18px", borderRadius: 10, border: "none", fontWeight: 600, fontSize: 13.5, background: input.trim() ? "#ea580c" : "#e8e5e0", color: input.trim() ? "#fff" : "#a8a39e", cursor: input.trim() ? "pointer" : "default" }}>Send</button>
+                style={{ flex: 1, padding: "12px 16px", borderRadius: theme.radiusPill, border: `1px solid ${theme.borderLight}`, background: theme.bgCard, fontSize: 14, outline: "none", color: theme.textPrimary, boxShadow: theme.shadowInput, transition: `border-color ${theme.transition}, box-shadow ${theme.transition}` }}
+                onFocus={e => { e.target.style.borderColor = theme.blue; e.target.style.boxShadow = "0 0 0 3px rgba(0,113,227,0.15)"; }} onBlur={e => { e.target.style.borderColor = theme.borderLight; e.target.style.boxShadow = theme.shadowInput; }} />
+              <button onClick={() => askFollowUp(input)} disabled={!input.trim() || loading} style={{ padding: "12px 20px", borderRadius: theme.radiusPill, border: "none", fontWeight: 600, fontSize: 14, background: input.trim() ? theme.blue : theme.borderLight, color: input.trim() ? "#fff" : theme.textTertiary, cursor: input.trim() ? "pointer" : "default", transition: `all ${theme.transition}` }}>Send</button>
             </div>
           </div>
         </div>
       )}
-
-      <style>{`
-        @keyframes bounce{0%,100%{transform:translateY(0);opacity:.4}50%{transform:translateY(-5px);opacity:1}}
-        @keyframes blink{0%,100%{opacity:1}50%{opacity:0}}
-        *{box-sizing:border-box;margin:0}input::placeholder{color:#b5b0a8}button:active{transform:scale(.97)}
-      `}</style>
     </div>
   );
 }
