@@ -9,6 +9,7 @@ const theme = {
   blueMuted: "#d1e3fa",
   bgPage: "#f5f5f7",
   bgCard: "#ffffff",
+  bgDesk: "#e8e8ed",
   textPrimary: "#1d1d1f",
   textSecondary: "#86868b",
   textTertiary: "#aeaeb2",
@@ -26,6 +27,7 @@ const theme = {
   statusRedText: "#b71c1c",
   shadowSm: "0 1px 3px rgba(0,0,0,0.08)",
   shadowMd: "0 2px 8px rgba(0,0,0,0.08)",
+  shadowPaper: "0 2px 16px rgba(0,0,0,0.12), 0 0 1px rgba(0,0,0,0.08)",
   shadowInput: "0 1px 4px rgba(0,0,0,0.06)",
   radiusSm: 8,
   radiusMd: 12,
@@ -38,6 +40,7 @@ const theme = {
   transitionFast: "0.15s ease",
 };
 
+/* ── Markdown renderer (bid document) ── */
 function RenderMD({ text }: { text: string }) {
   if (!text) return null;
   const lines = text.split("\n");
@@ -49,7 +52,7 @@ function RenderMD({ text }: { text: string }) {
   function flushTable() {
     if (tableRows.length === 0) return;
     const headerCells = tableRows[0].split("|").filter(c => c.trim());
-    const dataRows = tableRows.slice(2); // skip header + separator
+    const dataRows = tableRows.slice(2);
     elements.push(
       <div key={key++} style={{ overflowX: "auto", margin: "12px 0" }}>
         <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 13 }}>
@@ -88,27 +91,9 @@ function RenderMD({ text }: { text: string }) {
   for (let i = 0; i < lines.length; i++) {
     const line = lines[i];
     const trimmed = line.trim();
-
-    // Table detection
-    if (trimmed.startsWith("|")) {
-      if (!inTable) inTable = true;
-      tableRows.push(trimmed);
-      continue;
-    } else if (inTable) {
-      flushTable();
-    }
-
-    // Horizontal rule
-    if (trimmed === "---" || trimmed === "***") {
-      elements.push(<hr key={key++} style={{ border: "none", borderTop: `1px solid ${theme.divider}`, margin: "20px 0" }} />);
-      continue;
-    }
-
-    // Headers
-    if (trimmed.startsWith("# ")) {
-      elements.push(<h1 key={key++} style={{ fontSize: 22, fontWeight: 700, margin: "28px 0 8px", color: theme.textPrimary, letterSpacing: "-0.03em" }}>{trimmed.slice(2)}</h1>);
-      continue;
-    }
+    if (trimmed.startsWith("|")) { if (!inTable) inTable = true; tableRows.push(trimmed); continue; } else if (inTable) { flushTable(); }
+    if (trimmed === "---" || trimmed === "***") { elements.push(<hr key={key++} style={{ border: "none", borderTop: `1px solid ${theme.divider}`, margin: "20px 0" }} />); continue; }
+    if (trimmed.startsWith("# ")) { elements.push(<h1 key={key++} style={{ fontSize: 22, fontWeight: 700, margin: "28px 0 8px", color: theme.textPrimary, letterSpacing: "-0.03em" }}>{trimmed.slice(2)}</h1>); continue; }
     if (trimmed.startsWith("## ")) {
       const num = trimmed.match(/^## (\d+)\./);
       elements.push(
@@ -119,41 +104,32 @@ function RenderMD({ text }: { text: string }) {
       );
       continue;
     }
-    if (trimmed.startsWith("### ")) {
-      elements.push(<h3 key={key++} style={{ fontSize: 14, fontWeight: 600, margin: "16px 0 6px", color: theme.textSecondary }}>{trimmed.slice(4)}</h3>);
-      continue;
-    }
-
-    // Empty line
-    if (trimmed === "") {
-      elements.push(<div key={key++} style={{ height: 6 }} />);
-      continue;
-    }
-
-    // Bold-only lines
-    if (trimmed.startsWith("**") && trimmed.endsWith("**") && !trimmed.includes("**", 2)) {
-      elements.push(<p key={key++} style={{ fontSize: 13.5, fontWeight: 700, margin: "12px 0 4px", color: theme.textPrimary, lineHeight: 1.5 }}>{trimmed.slice(2, -2)}</p>);
-      continue;
-    }
-
-    // Regular paragraph with inline formatting
-    const formatted = trimmed
-      .replace(/\*\*(.+?)\*\*/g, "⟪B⟫$1⟪/B⟫")
-      .split(/(⟪\/?B⟫)/g);
-
-    const spans = [];
+    if (trimmed.startsWith("### ")) { elements.push(<h3 key={key++} style={{ fontSize: 14, fontWeight: 600, margin: "16px 0 6px", color: theme.textSecondary }}>{trimmed.slice(4)}</h3>); continue; }
+    if (trimmed === "") { elements.push(<div key={key++} style={{ height: 6 }} />); continue; }
+    if (trimmed.startsWith("**") && trimmed.endsWith("**") && !trimmed.includes("**", 2)) { elements.push(<p key={key++} style={{ fontSize: 13.5, fontWeight: 700, margin: "12px 0 4px", color: theme.textPrimary, lineHeight: 1.5 }}>{trimmed.slice(2, -2)}</p>); continue; }
+    const formatted = trimmed.replace(/\*\*(.+?)\*\*/g, "⟪B⟫$1⟪/B⟫").split(/(⟪\/?B⟫)/g);
+    const spans: any[] = [];
     let bold = false;
     for (const part of formatted) {
       if (part === "⟪B⟫") { bold = true; continue; }
       if (part === "⟪/B⟫") { bold = false; continue; }
       if (part) spans.push(<span key={spans.length} style={bold ? { fontWeight: 600, color: theme.textPrimary } : {}}>{part}</span>);
     }
-
     elements.push(<p key={key++} style={{ fontSize: 13.5, lineHeight: 1.7, margin: "3px 0", color: theme.textPrimary }}>{spans}</p>);
   }
-
   if (inTable) flushTable();
   return <>{elements}</>;
+}
+
+/* ── Analysis renderer (requirements, scorecard, risks) ── */
+function StatusBadge({ type }: { type: "pass" | "warn" | "risk" }) {
+  const map = {
+    pass: { label: "PASS", bg: theme.statusGreenBg, color: theme.statusGreenText, border: theme.statusGreenBorder },
+    warn: { label: "WARN", bg: theme.statusYellowBg, color: theme.statusYellowText, border: theme.statusYellowBorder },
+    risk: { label: "RISK", bg: theme.statusRedBg, color: theme.statusRedText, border: theme.statusRedBorder },
+  };
+  const s = map[type];
+  return <span style={{ padding: "2px 8px", borderRadius: theme.radiusPill, fontSize: 10, fontWeight: 700, letterSpacing: "0.04em", textTransform: "uppercase", background: s.bg, color: s.color, border: `1px solid ${s.border}`, flexShrink: 0 }}>{s.label}</span>;
 }
 
 function RenderAnalysis({ text }: { text: string }) {
@@ -166,34 +142,46 @@ function RenderAnalysis({ text }: { text: string }) {
     const t = line.trim();
     if (!t) { elements.push(<div key={key++} style={{ height: 6 }} />); continue; }
 
+    // Decision callout
     if (t.startsWith("✅ You should") || t.startsWith("❌ Skip") || t.startsWith("⚠️ This is")) {
-      const color = t.startsWith("✅") ? theme.statusGreenText : t.startsWith("❌") ? theme.statusRedText : theme.statusYellowText;
-      const bg = t.startsWith("✅") ? theme.statusGreenBg : t.startsWith("❌") ? theme.statusRedBg : theme.statusYellowBg;
-      const border = t.startsWith("✅") ? theme.statusGreenBorder : t.startsWith("❌") ? theme.statusRedBorder : theme.statusYellowBorder;
-      elements.push(<div key={key++} style={{ background: bg, color, border: `1px solid ${border}`, padding: "14px 20px", borderRadius: theme.radiusMd, fontSize: 16, fontWeight: 600, margin: "0 0 20px" }}>{t}</div>);
-      continue;
-    }
-
-    if (t === "REQUIREMENTS MATCH" || t === "SCORECARD" || t === "TOP 3 RISKS" || t.startsWith("ESTIMATED PRICE") || t === "REFINE YOUR BID" || t === "ASK ABOUT THIS RFP") {
-      elements.push(<p key={key++} style={{ fontSize: 11, fontWeight: 600, color: theme.textSecondary, textTransform: "uppercase", letterSpacing: "0.08em", margin: "24px 0 10px", borderBottom: `1px solid ${theme.divider}`, paddingBottom: 8 }}>{t}</p>);
-      continue;
-    }
-
-    if (t.startsWith("✅") || t.startsWith("⚠️") || t.startsWith("❌")) {
-      const icon = t.slice(0, 2);
-      const rest = t.slice(2).trim().replace(/—/, "").trim();
-      const [label, ...desc] = rest.split("—").length > 1 ? rest.split("—") : rest.split(" — ");
-      const bg = icon === "✅" ? theme.statusGreenBg : icon === "⚠️" ? theme.statusYellowBg : theme.statusRedBg;
-      const border = icon === "✅" ? theme.statusGreenBorder : icon === "⚠️" ? theme.statusYellowBorder : theme.statusRedBorder;
+      const type = t.startsWith("✅") ? "pass" : t.startsWith("❌") ? "risk" : "warn";
+      const color = type === "pass" ? theme.statusGreenText : type === "risk" ? theme.statusRedText : theme.statusYellowText;
+      const bg = type === "pass" ? theme.statusGreenBg : type === "risk" ? theme.statusRedBg : theme.statusYellowBg;
+      const border = type === "pass" ? theme.statusGreenBorder : type === "risk" ? theme.statusRedBorder : theme.statusYellowBorder;
+      const cleanText = t.replace(/^[✅❌⚠️]\s*/, "");
       elements.push(
-        <div key={key++} style={{ display: "flex", gap: 10, padding: "10px 14px", background: bg, border: `1px solid ${border}`, borderRadius: 10, margin: "5px 0", fontSize: 13, lineHeight: 1.6 }}>
-          <span style={{ flexShrink: 0 }}>{icon}</span>
-          <span>{desc.length ? <><strong>{label.trim()}</strong> — {desc.join("—").trim()}</> : rest}</span>
+        <div key={key++} style={{ background: bg, color, border: `1px solid ${border}`, padding: "14px 20px", borderRadius: theme.radiusMd, fontSize: 15, fontWeight: 600, margin: "0 0 20px", display: "flex", alignItems: "center", gap: 10 }}>
+          <StatusBadge type={type} />
+          <span>{cleanText}</span>
         </div>
       );
       continue;
     }
 
+    // Section headers
+    if (t === "REQUIREMENTS MATCH" || t === "SCORECARD" || t === "TOP 3 RISKS" || t.startsWith("ESTIMATED PRICE") || t === "REFINE YOUR BID" || t === "ASK ABOUT THIS RFP") {
+      elements.push(<p key={key++} style={{ fontSize: 11, fontWeight: 600, color: theme.textSecondary, textTransform: "uppercase", letterSpacing: "0.08em", margin: "24px 0 10px", borderBottom: `1px solid ${theme.divider}`, paddingBottom: 8 }}>{t}</p>);
+      continue;
+    }
+
+    // Status items with badge indicators
+    if (t.startsWith("✅") || t.startsWith("⚠️") || t.startsWith("❌")) {
+      const icon = t.slice(0, 2);
+      const type: "pass" | "warn" | "risk" = icon === "✅" ? "pass" : icon === "⚠️" ? "warn" : "risk";
+      const rest = t.slice(2).trim().replace(/—/, "").trim();
+      const [label, ...desc] = rest.split("—").length > 1 ? rest.split("—") : rest.split(" — ");
+      const bg = type === "pass" ? theme.statusGreenBg : type === "warn" ? theme.statusYellowBg : theme.statusRedBg;
+      const border = type === "pass" ? theme.statusGreenBorder : type === "warn" ? theme.statusYellowBorder : theme.statusRedBorder;
+      elements.push(
+        <div key={key++} style={{ display: "flex", gap: 10, padding: "10px 14px", background: bg, border: `1px solid ${border}`, borderRadius: 10, margin: "5px 0", fontSize: 13, lineHeight: 1.6, alignItems: "flex-start" }}>
+          <StatusBadge type={type} />
+          <span style={{ flex: 1 }}>{desc.length ? <><strong>{label.trim()}</strong> — {desc.join("—").trim()}</> : rest}</span>
+        </div>
+      );
+      continue;
+    }
+
+    // Scorecard items
     if (/^\d+\.\s/.test(t)) {
       const num = t.match(/^(\d+)\./)![1];
       const rest = t.slice(t.indexOf(".") + 1).trim();
@@ -215,6 +203,7 @@ function RenderAnalysis({ text }: { text: string }) {
       }
     }
 
+    // Total score
     if (t.startsWith("Total:")) {
       elements.push(<div key={key++} style={{ background: theme.textPrimary, color: "#fff", padding: "12px 20px", borderRadius: 10, fontSize: 15, fontWeight: 700, margin: "10px 0", display: "flex", justifyContent: "space-between" }}>
         <span>{t.split("—")[0].trim()}</span>
@@ -228,6 +217,112 @@ function RenderAnalysis({ text }: { text: string }) {
   return <>{elements}</>;
 }
 
+/* ── RFP Document renderer (paper-style) ── */
+function RenderRFPDocument({ text }: { text: string }) {
+  if (!text) return null;
+  const lines = text.split("\n").map(l => l.trim()).filter(Boolean);
+  // First line: title, rest: pipe-separated fields
+  const titleLine = lines[0] || "";
+  const titleMatch = titleLine.match(/^INVITATION TO BID:\s*(.+)/i);
+  const title = titleMatch ? titleMatch[1] : titleLine;
+
+  // Parse remaining lines for key-value fields
+  const fields: { label: string; value: string }[] = [];
+  let requirements = "";
+  for (let i = 1; i < lines.length; i++) {
+    const parts = lines[i].split("|").map(p => p.trim()).filter(Boolean);
+    for (const part of parts) {
+      const colonIdx = part.indexOf(":");
+      if (colonIdx > 0) {
+        const label = part.slice(0, colonIdx).trim();
+        const value = part.slice(colonIdx + 1).trim();
+        if (label.toLowerCase() === "requirements") {
+          requirements = value;
+        } else {
+          fields.push({ label, value });
+        }
+      }
+    }
+  }
+
+  const reqList = requirements ? requirements.split(",").map(r => r.trim()).filter(Boolean) : [];
+
+  return (
+    <div style={{ fontFamily: theme.fontFamily }}>
+      {/* Document header */}
+      <div style={{ borderBottom: `2px solid ${theme.textPrimary}`, paddingBottom: 20, marginBottom: 32 }}>
+        <p style={{ fontSize: 11, fontWeight: 600, color: theme.textSecondary, textTransform: "uppercase", letterSpacing: "0.1em", marginBottom: 8 }}>Invitation to Bid</p>
+        <h1 style={{ fontSize: 22, fontWeight: 700, color: theme.textPrimary, letterSpacing: "-0.02em", lineHeight: 1.3, margin: 0 }}>{title}</h1>
+      </div>
+
+      {/* Fields grid */}
+      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "24px 40px", marginBottom: 36 }}>
+        {fields.map((f, i) => (
+          <div key={i}>
+            <p style={{ fontSize: 10, fontWeight: 600, color: theme.textTertiary, textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: 4 }}>{f.label}</p>
+            <p style={{ fontSize: 15, fontWeight: 600, color: theme.textPrimary, margin: 0 }}>{f.value}</p>
+          </div>
+        ))}
+      </div>
+
+      {/* Requirements section */}
+      {reqList.length > 0 && (
+        <div>
+          <p style={{ fontSize: 10, fontWeight: 600, color: theme.textTertiary, textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: 12, borderTop: `1px solid ${theme.borderLight}`, paddingTop: 20 }}>Requirements</p>
+          <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
+            {reqList.map((r, i) => (
+              <span key={i} style={{ padding: "5px 12px", borderRadius: theme.radiusPill, background: theme.divider, fontSize: 12, fontWeight: 500, color: theme.textPrimary }}>{r}</span>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Page footer */}
+      <div style={{ marginTop: 48, paddingTop: 16, borderTop: `1px solid ${theme.borderLight}`, textAlign: "center" }}>
+        <p style={{ fontSize: 10, color: theme.textTertiary }}>Page 1 of 1</p>
+      </div>
+    </div>
+  );
+}
+
+/* ── Bid Summary metrics (right panel on bid step) ── */
+function RenderBidSummary() {
+  return (
+    <div style={{ marginBottom: 20 }}>
+      {/* Score */}
+      <div style={{ background: theme.textPrimary, color: "#fff", padding: "14px 20px", borderRadius: theme.radiusMd, fontSize: 15, fontWeight: 700, display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
+        <span>Bid Score</span>
+        <span style={{ color: "#ffd60a" }}>45/50 — STRONG BID</span>
+      </div>
+
+      {/* Price */}
+      <div style={{ background: theme.bgCard, borderRadius: theme.radiusMd, padding: "16px 20px", boxShadow: theme.shadowSm, marginBottom: 12 }}>
+        <p style={{ fontSize: 10, fontWeight: 600, color: theme.textTertiary, textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: 4 }}>Total Base Bid</p>
+        <p style={{ fontSize: 24, fontWeight: 700, color: theme.textPrimary, margin: 0, fontFamily: theme.fontMono }}>$1,880,000</p>
+      </div>
+
+      {/* Status pills */}
+      <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
+        {[
+          { label: "Crew Available", type: "pass" as const },
+          { label: "Bonding OK", type: "pass" as const },
+          { label: "EMR 0.78", type: "pass" as const },
+          { label: "New GC", type: "warn" as const },
+          { label: "12-mo Schedule", type: "pass" as const },
+        ].map((item, i) => {
+          const colors = item.type === "pass"
+            ? { bg: theme.statusGreenBg, color: theme.statusGreenText, border: theme.statusGreenBorder }
+            : { bg: theme.statusYellowBg, color: theme.statusYellowText, border: theme.statusYellowBorder };
+          return (
+            <span key={i} style={{ padding: "4px 10px", borderRadius: theme.radiusPill, fontSize: 11, fontWeight: 600, background: colors.bg, color: colors.color, border: `1px solid ${colors.border}` }}>{item.label}</span>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+/* ── Data constants ── */
 const PREBAKED_ANALYSIS = `✅ You should bid on this.
 
 This is right in your wheelhouse — hospital plumbing and medical gas, the exact scope you crushed at Methodist Dallas.
@@ -458,6 +553,7 @@ const SAMPLE_RFP = `INVITATION TO BID: Plumbing & Medical Gas — Children's Hea
 GC: DPR Construction | Bid Date: April 25, 2026 | 22,000 SF, 4 pediatric ORs, 12 pre/post-op bays
 Requirements: NFPA 99 Cat 1 med gas, 5+ hospital projects, 4+ certified brazers, EMR <1.0, BIM LOD 350, prevailing wage, 12-month schedule, $3,500/day LDs`;
 
+/* ── Main App ── */
 export default function App() {
   const [step, setStep] = useState("upload");
   const [rfpText, setRfpText] = useState("");
@@ -472,8 +568,17 @@ export default function App() {
   const endRef = useRef<HTMLDivElement>(null);
   const bidRef = useRef<HTMLDivElement>(null);
   const fileRef = useRef<HTMLInputElement>(null);
+  const paperRef = useRef<HTMLDivElement>(null);
 
+  // Scroll chat to bottom in right panel
   useEffect(() => { endRef.current?.scrollIntoView({ behavior: "smooth" }); }, [messages, loading]);
+
+  // Auto-scroll paper card during bid typing
+  useEffect(() => {
+    if (typingFor === "bid" && paperRef.current) {
+      paperRef.current.scrollTop = paperRef.current.scrollHeight;
+    }
+  }, [displayText, typingFor]);
 
   function typeOut(text: string, target: string) {
     setTyping(true);
@@ -498,16 +603,17 @@ export default function App() {
   function runDemo() {
     setRfpText(SAMPLE_RFP);
     setStep("analyzing");
-    setTimeout(() => { setStep("results"); typeOut(PREBAKED_ANALYSIS, "analysis"); }, 1000);
+    setTimeout(() => { setStep("analysis"); typeOut(PREBAKED_ANALYSIS, "analysis"); }, 1000);
   }
 
   function generateDemoBid() {
+    setStep("bid");
     typeOut(PREBAKED_BID, "bid");
   }
 
   function handleFile(e: any) {
     const f = e.target.files?.[0];
-    if (f) { const r = new FileReader(); r.onload = ev => { setRfpText(ev.target?.result as string); setStep("results"); setAnalysis("Analyzing your RFP... (API call in production)"); }; r.readAsText(f); }
+    if (f) { const r = new FileReader(); r.onload = ev => { setRfpText(ev.target?.result as string); setStep("analysis"); setAnalysis("Analyzing your RFP... (API call in production)"); }; r.readAsText(f); }
   }
 
   async function askFollowUp(text: string) {
@@ -535,19 +641,62 @@ export default function App() {
     ? ["Lower the base bid by 5%", "Strengthen the medical gas section", "Add more schedule detail", "Shorten the executive summary"]
     : ["Draft just the safety section", "What crew should we assign?", "How does pricing compare to Methodist Dallas?", "What are the biggest risks?"];
 
+  const inSplit = step === "analysis" || step === "bid";
+
   return (
     <div style={{ fontFamily: theme.fontFamily, background: theme.bgPage, minHeight: "100vh", color: theme.textPrimary }}>
       <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
 
-      {/* Header — frosted glass */}
-      <div style={{ background: "rgba(255,255,255,0.72)", backdropFilter: "blur(20px) saturate(180%)", WebkitBackdropFilter: "blur(20px) saturate(180%)", borderBottom: "1px solid rgba(0,0,0,0.08)", padding: "14px 24px", display: "flex", alignItems: "center", justifyContent: "space-between", position: "sticky", top: 0, zIndex: 50 }}>
+      {/* ── Header ── */}
+      <div style={{ background: "rgba(255,255,255,0.72)", backdropFilter: "blur(20px) saturate(180%)", WebkitBackdropFilter: "blur(20px) saturate(180%)", borderBottom: "1px solid rgba(0,0,0,0.08)", padding: "0 24px", display: "flex", alignItems: "center", justifyContent: "space-between", position: "sticky", top: 0, zIndex: 50, height: 49 }}>
+        {/* Logo */}
         <div style={{ display: "flex", alignItems: "center", gap: 10, cursor: "pointer" }} onClick={reset}>
           <span style={{ fontWeight: 700, fontSize: 17, color: theme.textPrimary, letterSpacing: "-0.02em" }}>Ironflow<span style={{ color: theme.blue }}> AI</span></span>
         </div>
-        {step !== "upload" && <button onClick={reset} style={{ padding: "6px 14px", borderRadius: theme.radiusPill, border: `1px solid ${theme.border}`, background: theme.bgCard, color: theme.textSecondary, fontSize: 12, fontWeight: 500, cursor: "pointer", transition: theme.transitionFast }}>New RFP</button>}
+
+        {/* Tab bar */}
+        {inSplit && (
+          <div style={{ display: "flex", gap: 0, position: "absolute", left: "50%", transform: "translateX(-50%)" }}>
+            {[
+              { label: "Analysis", target: "analysis", enabled: true },
+              { label: "Bid", target: "bid", enabled: !!analysis },
+            ].map(tab => {
+              const active = step === tab.target;
+              return (
+                <button
+                  key={tab.target}
+                  onClick={() => {
+                    if (!tab.enabled) return;
+                    if (tab.target === "bid" && !bidDoc && !typing) generateDemoBid();
+                    else setStep(tab.target);
+                  }}
+                  style={{
+                    padding: "0 16px",
+                    height: 49,
+                    fontSize: 13,
+                    fontWeight: 600,
+                    cursor: tab.enabled ? "pointer" : "default",
+                    background: "none",
+                    border: "none",
+                    borderBottom: active ? `2px solid ${theme.blue}` : "2px solid transparent",
+                    color: active ? theme.blue : tab.enabled ? theme.textSecondary : theme.textTertiary,
+                    transition: theme.transitionFast,
+                  }}
+                >
+                  {tab.label}
+                </button>
+              );
+            })}
+          </div>
+        )}
+
+        {/* Right actions */}
+        <div>
+          {step !== "upload" && <button onClick={reset} style={{ padding: "6px 14px", borderRadius: theme.radiusPill, border: `1px solid ${theme.border}`, background: theme.bgCard, color: theme.textSecondary, fontSize: 12, fontWeight: 500, cursor: "pointer", transition: theme.transitionFast }}>New RFP</button>}
+        </div>
       </div>
 
-      {/* Upload page */}
+      {/* ── Upload page ── */}
       {step === "upload" && (
         <div style={{ maxWidth: 600, margin: "0 auto", padding: "80px 24px", textAlign: "center" }}>
           <div style={{ width: 64, height: 64, borderRadius: theme.radiusXl, background: theme.blueLight, display: "flex", alignItems: "center", justifyContent: "center", color: theme.blue, fontWeight: 700, fontSize: 26, margin: "0 auto 24px" }}>IF</div>
@@ -556,7 +705,6 @@ export default function App() {
           <div onClick={() => fileRef.current?.click()} style={{ border: `2px dashed ${theme.border}`, borderRadius: theme.radiusXl, padding: "56px 40px", cursor: "pointer", transition: `all ${theme.transition}`, marginBottom: 20, background: theme.bgCard, boxShadow: theme.shadowSm }}
             onMouseOver={e => { e.currentTarget.style.borderColor = theme.blue; e.currentTarget.style.background = theme.blueLight; }}
             onMouseOut={e => { e.currentTarget.style.borderColor = theme.border; e.currentTarget.style.background = theme.bgCard; }}>
-            <div style={{ fontSize: 36, marginBottom: 10 }}>📄</div>
             <p style={{ fontSize: 15, fontWeight: 500, margin: "0 0 4px", color: theme.textPrimary }}>Drop your RFP here, or click to browse</p>
             <p style={{ fontSize: 12, color: theme.textTertiary, margin: 0 }}>Supports .txt, .md files</p>
             <input ref={fileRef} type="file" accept=".txt,.md" onChange={handleFile} style={{ display: "none" }} />
@@ -567,12 +715,12 @@ export default function App() {
           <button onClick={runDemo} style={{ padding: "14px 28px", borderRadius: theme.radiusPill, border: "none", background: theme.blue, color: "#fff", fontSize: 14, fontWeight: 600, cursor: "pointer", width: "100%", transition: `all ${theme.transition}`, letterSpacing: "-0.01em" }}
             onMouseOver={e => { e.currentTarget.style.background = theme.blueHover; }}
             onMouseOut={e => { e.currentTarget.style.background = theme.blue; }}>
-            🏥 Try demo — Children's Health Plano Surgical Suite
+            Try demo — Children's Health Plano Surgical Suite
           </button>
         </div>
       )}
 
-      {/* Analyzing */}
+      {/* ── Analyzing ── */}
       {step === "analyzing" && (
         <div style={{ maxWidth: 500, margin: "0 auto", padding: "120px 20px", textAlign: "center" }}>
           <div style={{ display: "flex", justifyContent: "center", gap: 6, marginBottom: 20 }}>
@@ -583,78 +731,95 @@ export default function App() {
         </div>
       )}
 
-      {/* Results */}
-      {step === "results" && (
-        <div style={{ maxWidth: 800, margin: "0 auto", padding: "28px 24px 160px" }}>
+      {/* ── Split Panel Layout (analysis + bid) ── */}
+      {inSplit && (
+        <div style={{ display: "flex", height: "calc(100vh - 49px)", overflow: "hidden" }}>
 
-          {/* Analysis card */}
-          {showAnalysis && (
-            <div style={{ background: theme.bgCard, borderRadius: theme.radiusLg, padding: "28px 32px", marginBottom: 20, boxShadow: theme.shadowMd }}>
-              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 14 }}>
-                <div style={{ display: "flex", alignItems: "center", gap: 8 }}><span style={{ fontSize: 18 }}>📋</span><h2 style={{ fontSize: 16, fontWeight: 700, margin: 0 }}>RFP Analysis</h2></div>
-                <span style={{ fontSize: 11, color: theme.blue, background: theme.blueLight, padding: "4px 12px", borderRadius: theme.radiusPill, fontWeight: 600 }}>Step 1</span>
-              </div>
-              <RenderAnalysis text={showAnalysis} />
-              {typing && typingFor === "analysis" && <span style={{ display: "inline-block", width: 2, height: 16, background: theme.blue, animation: "blink 0.8s infinite" }} />}
+          {/* ── Left Panel: Document Viewer ── */}
+          <div style={{ flex: "0 0 55%", display: "flex", flexDirection: "column", overflow: "hidden", background: theme.bgDesk, padding: "32px 40px" }}>
+            <div ref={paperRef} style={{ flex: 1, background: theme.bgCard, borderRadius: 4, boxShadow: theme.shadowPaper, padding: "48px 56px", overflow: "auto", lineHeight: 1.8 }}>
+              {step === "analysis" && <RenderRFPDocument text={rfpText} />}
+              {step === "bid" && (
+                <>
+                  {/* Bid doc header */}
+                  <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 20 }}>
+                    <h2 style={{ fontSize: 16, fontWeight: 700, margin: 0 }}>Your Bid Response</h2>
+                    <div style={{ display: "flex", gap: 6 }}>
+                      {bidDoc && <span style={{ fontSize: 11, color: theme.statusGreenText, background: theme.statusGreenBg, padding: "4px 12px", borderRadius: theme.radiusPill, fontWeight: 600 }}>Complete</span>}
+                      {bidDoc && <button onClick={() => navigator.clipboard.writeText(bidDoc)} style={{ fontSize: 11, color: theme.textSecondary, background: theme.divider, padding: "4px 12px", borderRadius: theme.radiusPill, border: "none", cursor: "pointer" }}>Copy</button>}
+                      {typing && typingFor === "bid" && <span style={{ fontSize: 11, color: theme.blue, background: theme.blueLight, padding: "4px 12px", borderRadius: theme.radiusPill, fontWeight: 600 }}>Generating...</span>}
+                    </div>
+                  </div>
+                  <RenderMD text={showBid} />
+                  {typing && typingFor === "bid" && <span style={{ display: "inline-block", width: 2, height: 16, background: theme.blue, animation: "blink 0.8s infinite" }} />}
+                </>
+              )}
             </div>
-          )}
+          </div>
 
-          {/* Generate button */}
-          {analysis && !bidDoc && !typing && (
-            <button onClick={generateDemoBid} style={{ width: "100%", padding: "18px", borderRadius: theme.radiusMd, border: "none", fontSize: 16, fontWeight: 600, cursor: "pointer", background: theme.blue, color: "#fff", marginBottom: 20, display: "flex", alignItems: "center", justifyContent: "center", gap: 8, boxShadow: "0 2px 8px rgba(0,113,227,0.3)", transition: `all ${theme.transition}`, letterSpacing: "-0.01em" }}>
-              📝 Generate full bid response
-            </button>
-          )}
+          {/* ── Right Panel: Analysis / Chat ── */}
+          <div style={{ flex: "0 0 45%", display: "flex", flexDirection: "column", overflow: "hidden", borderLeft: `1px solid ${theme.borderLight}`, background: theme.bgPage }}>
 
-          {/* Bid document */}
-          {showBid && (
-            <div ref={bidRef} style={{ background: theme.bgCard, borderRadius: theme.radiusLg, padding: "32px 36px", marginBottom: 20, boxShadow: theme.shadowMd }}>
-              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 16 }}>
-                <div style={{ display: "flex", alignItems: "center", gap: 8 }}><span style={{ fontSize: 18 }}>📝</span><h2 style={{ fontSize: 16, fontWeight: 700, margin: 0 }}>Your Bid Response</h2></div>
-                <div style={{ display: "flex", gap: 6 }}>
-                  {bidDoc && <span style={{ fontSize: 11, color: theme.statusGreenText, background: theme.statusGreenBg, padding: "4px 12px", borderRadius: theme.radiusPill, fontWeight: 600 }}>Complete</span>}
-                  {bidDoc && <button onClick={() => navigator.clipboard.writeText(bidDoc)} style={{ fontSize: 11, color: theme.textSecondary, background: theme.divider, padding: "4px 12px", borderRadius: theme.radiusPill, border: "none", cursor: "pointer" }}>Copy</button>}
-                  {typing && typingFor === "bid" && <span style={{ fontSize: 11, color: theme.blue, background: theme.blueLight, padding: "4px 12px", borderRadius: theme.radiusPill, fontWeight: 600 }}>Generating...</span>}
+            {/* Scrollable content */}
+            <div style={{ flex: 1, overflowY: "auto", padding: "28px 24px" }}>
+
+              {/* Analysis content */}
+              {step === "analysis" && (
+                <>
+                  <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 16 }}>
+                    <h2 style={{ fontSize: 16, fontWeight: 700, margin: 0 }}>RFP Analysis</h2>
+                    <span style={{ fontSize: 11, color: theme.blue, background: theme.blueLight, padding: "4px 12px", borderRadius: theme.radiusPill, fontWeight: 600 }}>Step 1</span>
+                  </div>
+                  <RenderAnalysis text={showAnalysis} />
+                  {typing && typingFor === "analysis" && <span style={{ display: "inline-block", width: 2, height: 16, background: theme.blue, animation: "blink 0.8s infinite" }} />}
+                </>
+              )}
+
+              {/* Bid summary metrics */}
+              {step === "bid" && <RenderBidSummary />}
+
+              {/* Suggestions */}
+              {(analysis || bidDoc) && !typing && (
+                <div style={{ marginTop: 20, marginBottom: 16 }}>
+                  <p style={{ fontSize: 11, fontWeight: 600, color: theme.textSecondary, marginBottom: 8, textTransform: "uppercase", letterSpacing: "0.06em" }}>{bidDoc ? "Refine your bid" : "Ask about this RFP"}</p>
+                  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 6 }}>
+                    {suggestions.map((q, i) => (
+                      <button key={i} onClick={() => askFollowUp(q)} style={{ padding: "10px 14px", borderRadius: theme.radiusMd, border: `1px solid ${theme.borderLight}`, background: theme.bgCard, fontSize: 12, color: theme.textPrimary, textAlign: "left", cursor: "pointer", lineHeight: 1.4, transition: `all ${theme.transition}`, boxShadow: theme.shadowSm }}
+                        onMouseOver={e => e.currentTarget.style.borderColor = theme.blue} onMouseOut={e => e.currentTarget.style.borderColor = theme.borderLight}>{q}</button>
+                    ))}
+                  </div>
                 </div>
+              )}
+
+              {/* Chat messages */}
+              {messages.map((msg, i) => (
+                <div key={i} style={{ marginBottom: 14, display: "flex", flexDirection: "column", alignItems: msg.role === "user" ? "flex-end" : "flex-start" }}>
+                  {msg.role === "user"
+                    ? <div style={{ maxWidth: "85%", background: theme.blue, color: "#fff", padding: "10px 16px", borderRadius: "16px 16px 4px 16px", fontSize: 13, lineHeight: 1.6 }}>{msg.text}</div>
+                    : <div style={{ maxWidth: "95%", background: theme.divider, borderRadius: "4px 16px 16px 16px", padding: "14px 18px", fontSize: 13, lineHeight: 1.7, color: theme.textPrimary, whiteSpace: "pre-wrap" }}>{msg.text}</div>
+                  }
+                </div>
+              ))}
+              {loading && <div style={{ display: "flex", alignItems: "center", gap: 6, padding: "8px 0" }}>{[0,1,2].map(i => <div key={i} style={{ width: 7, height: 7, borderRadius: "50%", background: theme.blue, animation: `pulse-ring 1.4s ease-in-out ${i*0.2}s infinite` }} />)}<span style={{ fontSize: 12, color: theme.textSecondary }}>Thinking...</span></div>}
+              <div ref={endRef} />
+            </div>
+
+            {/* ── Bottom bar ── */}
+            <div style={{ borderTop: `1px solid ${theme.borderLight}`, padding: "12px 20px", background: "rgba(255,255,255,0.72)", backdropFilter: "blur(20px) saturate(180%)", WebkitBackdropFilter: "blur(20px) saturate(180%)" }}>
+              {/* Generate bid button */}
+              {step === "analysis" && analysis && !bidDoc && !typing && (
+                <button onClick={generateDemoBid} style={{ width: "100%", padding: "14px", borderRadius: theme.radiusMd, border: "none", fontSize: 14, fontWeight: 600, cursor: "pointer", background: theme.blue, color: "#fff", marginBottom: 10, display: "flex", alignItems: "center", justifyContent: "center", gap: 8, boxShadow: "0 2px 8px rgba(0,113,227,0.3)", transition: `all ${theme.transition}`, letterSpacing: "-0.01em" }}>
+                  Generate Full Bid Response
+                </button>
+              )}
+              {/* Chat input */}
+              <div style={{ display: "flex", gap: 8 }}>
+                <input value={input} onChange={e => setInput(e.target.value)} onKeyDown={e => { if (e.key === "Enter") askFollowUp(input); }}
+                  placeholder={bidDoc ? "Ask to change pricing, rewrite a section..." : "Ask anything about this RFP..."}
+                  style={{ flex: 1, padding: "10px 16px", borderRadius: theme.radiusPill, border: `1px solid ${theme.borderLight}`, background: theme.bgCard, fontSize: 13, outline: "none", color: theme.textPrimary, boxShadow: theme.shadowInput, transition: `border-color ${theme.transition}, box-shadow ${theme.transition}` }}
+                  onFocus={e => { e.target.style.borderColor = theme.blue; e.target.style.boxShadow = "0 0 0 3px rgba(0,113,227,0.15)"; }} onBlur={e => { e.target.style.borderColor = theme.borderLight; e.target.style.boxShadow = theme.shadowInput; }} />
+                <button onClick={() => askFollowUp(input)} disabled={!input.trim() || loading} style={{ padding: "10px 18px", borderRadius: theme.radiusPill, border: "none", fontWeight: 600, fontSize: 13, background: input.trim() ? theme.blue : theme.borderLight, color: input.trim() ? "#fff" : theme.textTertiary, cursor: input.trim() ? "pointer" : "default", transition: `all ${theme.transition}` }}>Send</button>
               </div>
-              <RenderMD text={showBid} />
-              {typing && typingFor === "bid" && <span style={{ display: "inline-block", width: 2, height: 16, background: theme.blue, animation: "blink 0.8s infinite" }} />}
-            </div>
-          )}
-
-          {/* Suggestions */}
-          {(analysis || bidDoc) && !typing && (
-            <div style={{ marginBottom: 16 }}>
-              <p style={{ fontSize: 12, fontWeight: 600, color: theme.textSecondary, marginBottom: 8 }}>{bidDoc ? "REFINE YOUR BID" : "ASK ABOUT THIS RFP"}</p>
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 6 }}>
-                {suggestions.map((q, i) => (
-                  <button key={i} onClick={() => askFollowUp(q)} style={{ padding: "12px 16px", borderRadius: theme.radiusMd, border: `1px solid ${theme.borderLight}`, background: theme.bgCard, fontSize: 13, color: theme.textPrimary, textAlign: "left", cursor: "pointer", lineHeight: 1.5, transition: `all ${theme.transition}`, boxShadow: theme.shadowSm }}
-                    onMouseOver={e => e.currentTarget.style.borderColor = theme.blue} onMouseOut={e => e.currentTarget.style.borderColor = theme.borderLight}>{q}</button>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {/* Chat */}
-          {messages.map((msg, i) => (
-            <div key={i} style={{ marginBottom: 14, display: "flex", flexDirection: "column", alignItems: msg.role === "user" ? "flex-end" : "flex-start" }}>
-              {msg.role === "user"
-                ? <div style={{ maxWidth: "75%", background: theme.blue, color: "#fff", padding: "12px 18px", borderRadius: "18px 18px 4px 18px", fontSize: 14, lineHeight: 1.6 }}>{msg.text}</div>
-                : <div style={{ maxWidth: "88%", background: theme.divider, borderRadius: "4px 18px 18px 18px", padding: "16px 20px", fontSize: 14, lineHeight: 1.7, color: theme.textPrimary, whiteSpace: "pre-wrap" }}>{msg.text}</div>
-              }
-            </div>
-          ))}
-          {loading && <div style={{ display: "flex", alignItems: "center", gap: 6, padding: "8px 0" }}>{[0,1,2].map(i => <div key={i} style={{ width: 7, height: 7, borderRadius: "50%", background: theme.blue, animation: `pulse-ring 1.4s ease-in-out ${i*0.2}s infinite` }} />)}<span style={{ fontSize: 12, color: theme.textSecondary }}>Thinking...</span></div>}
-          <div ref={endRef} />
-
-          {/* Input bar — frosted glass */}
-          <div style={{ position: "fixed", bottom: 0, left: 0, right: 0, background: "rgba(245,245,247,0.72)", backdropFilter: "blur(20px) saturate(180%)", WebkitBackdropFilter: "blur(20px) saturate(180%)", borderTop: "1px solid rgba(0,0,0,0.06)", padding: "12px 24px" }}>
-            <div style={{ maxWidth: 800, margin: "0 auto", display: "flex", gap: 8 }}>
-              <input value={input} onChange={e => setInput(e.target.value)} onKeyDown={e => { if (e.key === "Enter") askFollowUp(input); }}
-                placeholder={bidDoc ? "Ask to change pricing, rewrite a section..." : "Ask anything about this RFP..."}
-                style={{ flex: 1, padding: "12px 16px", borderRadius: theme.radiusPill, border: `1px solid ${theme.borderLight}`, background: theme.bgCard, fontSize: 14, outline: "none", color: theme.textPrimary, boxShadow: theme.shadowInput, transition: `border-color ${theme.transition}, box-shadow ${theme.transition}` }}
-                onFocus={e => { e.target.style.borderColor = theme.blue; e.target.style.boxShadow = "0 0 0 3px rgba(0,113,227,0.15)"; }} onBlur={e => { e.target.style.borderColor = theme.borderLight; e.target.style.boxShadow = theme.shadowInput; }} />
-              <button onClick={() => askFollowUp(input)} disabled={!input.trim() || loading} style={{ padding: "12px 20px", borderRadius: theme.radiusPill, border: "none", fontWeight: 600, fontSize: 14, background: input.trim() ? theme.blue : theme.borderLight, color: input.trim() ? "#fff" : theme.textTertiary, cursor: input.trim() ? "pointer" : "default", transition: `all ${theme.transition}` }}>Send</button>
             </div>
           </div>
         </div>
