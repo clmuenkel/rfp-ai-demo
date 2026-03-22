@@ -303,7 +303,7 @@ function RenderRFPDocument({ text }: { text: string }) {
   // Page footer
   elements.push(
     <div key={key++} style={{ marginTop: 48, paddingTop: 16, borderTop: `1px solid ${theme.borderLight}`, textAlign: "center" }}>
-      <p style={{ fontSize: 10, color: theme.textTertiary }}>Page 1 of 1</p>
+      <p style={{ fontSize: 10, color: theme.textTertiary }}>RFP Document — 20 pages</p>
     </div>
   );
 
@@ -535,22 +535,192 @@ const SAMPLE_RFP = `INVITATION TO BID: Plumbing — Restaurant Tenant Build-Out 
 Owner: Whitmore Property Group | PM: Whitmore Property Group | Bid Date: May 22, 2026
 Location: 3100 Hall Park Blvd, Frisco, TX 75034 | Size: 3,200 SF | Occupancy: Restaurant (A-2)
 
-PROJECT DETAILS
+PROJECT OVERVIEW
 
-The Warren at Hall Park is a mixed-use development in Frisco, TX. This bid covers the complete plumbing scope for a new restaurant tenant space on the ground floor. The space will include a full commercial kitchen, bar area with ice bins and glass washers, two ADA-compliant restrooms, and a mop closet.
+The Warren at Hall Park is a 285,000 SF mixed-use development located at the southeast corner of Hall Park Boulevard and Parkwood Boulevard in Frisco, Texas. The project includes Class A office space, ground-floor retail, and restaurant tenants anchoring the street-level experience. The development was designed by HKS Architects with Balfour Beatty serving as general contractor for the core and shell. The building received its Certificate of Occupancy in January 2026.
+
+This Invitation to Bid covers the complete plumbing scope for Suite 110, a new full-service restaurant tenant space on the ground floor. The space will include a full commercial kitchen with hood, a bar area with ice bins, glass washers, and cocktail stations, two ADA-compliant restrooms (one male, one female), and a mop closet. The restaurant concept is a modern American brasserie with a projected seating capacity of 120 and an expected daily cover count of 250–300.
+
+Whitmore Property Group is managing tenant coordination directly. The selected plumbing contractor will work alongside the tenant's general contractor (TBD), the HVAC contractor, and the electrical contractor. Close coordination will be required during the rough-in phase to avoid conflicts in the ceiling plenum, which has a finished height of 11'-6" with only 14" of plenum space.
 
 SCOPE OF WORK
 
-1. Demolition and removal of existing plumbing within the tenant space
-2. Underground rough-in: new sanitary waste lines, water service from existing main, grease waste line to interceptor
-3. Grease interceptor installation (50 GPM minimum, exterior or below-grade)
-4. Above-slab plumbing rough-in for kitchen, bar, and restrooms
-5. Domestic hot and cold water distribution
-6. Gas piping stubs to kitchen equipment locations (coordination with MEP)
-7. Fixture installation: 3-compartment sink, prep sink, hand sinks (3), mop sink, bar sink, 2 restroom groups (ADA)
-8. Water heater installation (75-gallon minimum, commercial grade)
-9. Backflow prevention as required by City of Frisco
-10. All required testing, inspections, and health department sign-off
+The plumbing contractor shall furnish all labor, materials, equipment, tools, transportation, permits, and supervision necessary for the complete plumbing installation as described below. All work shall comply with the International Plumbing Code (2021 edition) as adopted by the City of Frisco, Texas Department of Licensing and Regulation requirements, and all applicable local amendments.
+
+1. DEMOLITION AND SITE PREPARATION
+- Remove all existing plumbing within the tenant space, including abandoned waste lines, water stubs, and floor drains from previous tenant
+- Saw-cut existing concrete slab as required for new underground routing (4" slab on grade with vapor barrier)
+- Coordinate slab cuts with structural engineer of record (Datum Engineers) — no cuts within 24" of column footings
+- Cap and abandon any existing lines not being reused, per code
+- Protect all adjacent tenant spaces during demolition — dust barriers and noise mitigation required during business hours (7AM–6PM M-F)
+
+2. UNDERGROUND ROUGH-IN
+- Install new 4" sanitary waste main from kitchen area to existing building sanitary connection at Column Line G-7 (approximately 85 LF)
+- Install new 3" sanitary waste branch lines to restroom groups (approximately 40 LF each)
+- Install 2" grease waste line from kitchen fixtures to grease interceptor location (approximately 60 LF)
+- Install new 1-1/2" domestic water service from existing 2" building water main at mechanical room (Room 108) to tenant space — approximately 120 LF
+- Install 2" gas service stub from building gas meter to kitchen equipment manifold location — coordination with gas utility required
+- All underground piping to be bedded in pea gravel with minimum 4" cover per City of Frisco requirements
+- Concrete slab repair and patching after underground work — contractor to match existing slab finish and thickness
+
+3. GREASE INTERCEPTOR
+- Furnish and install exterior below-grade grease interceptor, minimum 50 GPM / 100 lb capacity
+- Acceptable manufacturers: Schier Products (GB-50), Watts (GB-50), or approved equal
+- Interceptor to be located in the designated utility area on the east side of the building (see Site Plan drawing C-101)
+- Contractor responsible for excavation, bedding, backfill, and grade restoration at interceptor location
+- Provide accessible cleanout at building penetration and at interceptor inlet
+- Connect grease waste line to interceptor and route interceptor outlet to building sanitary main
+- Flow control device required at interceptor inlet per City of Frisco ordinance 2024-08
+- Provide maintenance access lid rated for H-20 traffic loading
+
+4. ABOVE-SLAB PLUMBING ROUGH-IN
+- Domestic cold water distribution: Type L copper throughout, with isolation valves at each fixture group and at the main branch takeoff. Minimum 60 PSI at furthest fixture.
+- Domestic hot water distribution: Type L copper with 3/4" recirculation loop serving kitchen and bar areas. Insulate all hot water lines with 1" fiberglass per energy code.
+- Sanitary waste and vent system: Cast iron (no-hub) for all waste and vent piping within the tenant space. PVC permitted only for underground applications.
+- Acid waste: Not anticipated for this project. If required by tenant's equipment specifications, submit RFI before proceeding.
+- All piping in ceiling plenum to be supported with clevis hangers at maximum 8' spacing for horizontal runs. Use riser clamps at all vertical penetrations.
+- Provide firestopping at all penetrations through rated assemblies — UL-listed system required (Hilti CFS-S ACR or approved equal).
+- Coordinate all ceiling-level rough-in with HVAC ductwork and electrical conduit. The ceiling plenum is limited to 14" — careful routing is critical.
+
+5. PLUMBING FIXTURES
+- Kitchen: One (1) 3-compartment sink with pre-rinse faucet (T&S Brass B-0133), one (1) prep sink (single bowl, 18"x18"), three (3) hand sinks with knee-valve faucets (as required by TDSHS), one (1) mop sink (24"x24" floor-mounted with 6" rim guard)
+- Bar: One (1) bar sink (14"x16" underbar), two (2) glass washer connections with indirect waste, three (3) ice bin drains with indirect waste to floor sink, one (1) floor sink (12"x12") for indirect waste collection
+- Restrooms (2 groups, ADA-compliant): Each group includes one (1) wall-hung lavatory (Sloan EHD-81000), one (1) water closet (Sloan?"Crown" 1.28 GPF flushometer), and required grab bars and clearances per ADA/TAS. Male restroom also includes one (1) urinal (Sloan SU-1009).
+- Mop Closet: One (1) mop sink (24"x24"), one (1) hose bibb with vacuum breaker, one (1) floor drain
+- All fixtures to be commercial grade. Final fixture selections subject to tenant approval — allowances included in bid for standard commercial grade.
+
+6. WATER HEATER
+- Furnish and install one (1) commercial gas water heater, minimum 75-gallon capacity, minimum 75,100 BTU input
+- Acceptable manufacturers: AO Smith (BTH-300A), Rheem (GHE80-300A), or approved equal
+- Install in designated mechanical area (Room 108-A) per plans
+- Provide T&P relief valve discharge to floor drain — indirect connection per code
+- Seismic strapping required per IPC and City of Frisco amendments
+- Provide gas connection with dedicated shutoff, drip leg, and flexible connector
+- Expansion tank required on cold water supply to heater
+- If Alternate #1 (tankless) is accepted: substitute with Rinnai CU199iN commercial tankless units (2 in parallel) with recirculation pump and buffer tank
+
+7. BACKFLOW PREVENTION
+- Furnish and install reduced pressure zone (RPZ) backflow preventer on the domestic water service entrance to the tenant space
+- Acceptable manufacturers: Watts (009 series), Wilkins (975XL), or approved equal
+- Provide floor drain or indirect waste receptor beneath RPZ assembly
+- Contractor responsible for initial testing and City of Frisco registration
+- Provide annual test report and certification tags
+
+8. TESTING AND INSPECTIONS
+- Conduct DWV system test per IPC Section 312 — 10' head of water for 15 minutes minimum, all joints visible
+- Conduct water supply pressure test — 150 PSI hydrostatic for 2 hours minimum with no drop
+- Coordinate and schedule all required City of Frisco inspections: underground rough-in, above-slab rough-in, fixture final, and health department final
+- Coordinate Collin County health department inspection for food-service establishment plumbing
+- Provide all test reports, inspection records, and as-built drawings at project closeout
+- Contractor to provide video documentation of all underground installations before backfill
+
+GENERAL CONDITIONS
+
+All work shall be performed by licensed plumbers under the direct supervision of a Texas Master Plumber. The Master Plumber shall be present on site during all rough-in inspections and the final inspection.
+
+Working hours are Monday through Friday, 7:00 AM to 6:00 PM. Weekend and after-hours work may be required to avoid disruption to adjacent occupied tenants — this must be coordinated with Whitmore Property Group a minimum of 48 hours in advance. After-hours work will be compensated at the contractor's standard overtime rates as included in the bid.
+
+The contractor shall maintain a clean and safe work area at all times. Daily cleanup is required. All debris shall be removed from the building via the designated loading dock at the east service entrance — do not transport debris through the main lobby or retail corridors.
+
+The contractor shall protect all existing finishes, including polished concrete floors in common areas, glass storefronts, and elevator lobbies. Any damage caused by the plumbing contractor will be repaired at the contractor's expense.
+
+INSURANCE AND BONDING REQUIREMENTS
+
+- Commercial General Liability: $1,000,000 per occurrence / $2,000,000 aggregate
+- Umbrella/Excess Liability: $2,000,000
+- Automobile Liability: $1,000,000 combined single limit
+- Workers' Compensation: Statutory limits with $1,000,000 employer's liability
+- Builder's Risk: Provided by Owner — contractor to be named as additional insured
+- Payment and Performance Bond: Required if contract exceeds $100,000
+- All insurance certificates must name Whitmore Property Group and The Warren at Hall Park, LLC as additional insureds
+
+SAFETY REQUIREMENTS
+
+The contractor shall comply with all OSHA standards applicable to commercial construction. At minimum:
+- All workers shall have completed OSHA 10-hour construction safety training
+- Foreman or supervisor shall have completed OSHA 30-hour training
+- Personal protective equipment (PPE) required at all times: hard hat, safety glasses, steel-toe boots
+- Hot work permits required for all soldering and brazing — coordinate with building fire alarm system
+- Contractor shall maintain a site-specific safety plan and make it available upon request
+- Any OSHA-recordable incident must be reported to Whitmore Property Group within 4 hours
+
+PREVAILING WAGE
+
+This project is subject to prevailing wage requirements per the owner's financing agreements. The contractor shall pay no less than the prevailing wage rates as published by the Texas Workforce Commission for Collin County. Certified payroll records shall be submitted weekly to Whitmore Property Group.
+
+SCHEDULE
+
+Notice to Proceed: June 2, 2026 | Substantial Completion: July 28, 2026 (8 weeks)
+
+- Week 1: Mobilization, demolition, slab cutting
+- Weeks 2–3: Underground rough-in, grease interceptor installation
+- Weeks 4–5: Above-slab rough-in (supply, waste, vent), water heater
+- Weeks 6–7: Fixture installation, trim-out, backflow preventer
+- Week 8: Testing, inspections, punch list, closeout
+
+Liquidated damages of $500 per calendar day will apply for each day beyond the Substantial Completion date. Time extensions may be granted for documented force majeure events, owner-directed changes, or delays caused by other trades, subject to written approval by Whitmore Property Group.
+
+SUBMITTAL REQUIREMENTS
+
+The following shall be included with each bid submission:
+
+1. Completed Bid Form (Attachment A) with all line items priced
+2. List of at least three (3) comparable commercial plumbing projects completed in the past 5 years, including owner/GC name, contact information, contract value, and brief scope description
+3. Resumes or qualifications for the proposed Project Manager and Foreman
+4. Copy of current Texas Master Plumber license
+5. Current EMR (Experience Modification Rate) letter from insurance carrier
+6. Certificate of insurance meeting the requirements listed above
+7. Preliminary project schedule showing major milestones and coordination points
+8. List of proposed major equipment and fixture manufacturers
+9. Acknowledgment of all addenda issued (if any)
+10. Signed Bid Bond or bid security in the amount of 5% of total bid price
+
+BID FORM
+
+All bids shall be submitted on the Bid Form provided as Attachment A. Bids must be received by 2:00 PM Central Time on May 22, 2026 at the following address:
+
+Whitmore Property Group
+Attn: David Whitmore, Director of Development
+3100 Hall Park Blvd, Suite 500
+Frisco, TX 75034
+
+Electronic submissions accepted at: bids@whitmorepropertygroup.com
+
+A mandatory pre-bid site walk will be held on May 12, 2026 at 10:00 AM. Meet at the east service entrance. Bids from contractors who do not attend the pre-bid walk will not be accepted.
+
+EVALUATION CRITERIA
+
+Bids will be evaluated based on the following criteria (in order of priority):
+
+1. Total bid price and completeness of pricing (40%)
+2. Relevant project experience and references (25%)
+3. Proposed team qualifications and availability (15%)
+4. Proposed schedule and approach (10%)
+5. Safety record (EMR) and OSHA compliance history (10%)
+
+Whitmore Property Group reserves the right to reject any or all bids, to waive informalities, and to award the contract to the bidder whose proposal is deemed most advantageous to the project. The lowest bid will not necessarily be accepted.
+
+ALTERNATES
+
+Bidders shall provide pricing for the following alternates on the Bid Form:
+
+Alternate #1 — Tankless Water Heater: Substitute the specified 75-gallon tank water heater with Rinnai CU199iN commercial tankless units (2 in parallel) with recirculation pump and buffer tank. Provide installed cost difference (add or deduct).
+
+Alternate #2 — Point-of-Use Hot Water Recirculation: Add a dedicated recirculation loop with point-of-use hot water delivery at the bar area (3 stations). Include Grundfos COMFORT PM circulator pump and return line.
+
+Alternate #3 — Floor Sink with Indirect Waste for Walk-In Cooler: Add one (1) 12"x12" floor sink with indirect waste connection at the walk-in cooler location, including 2" waste line routed to the nearest sanitary connection (approximately 25 LF).
+
+ATTACHMENTS
+
+- Attachment A: Bid Form (Excel)
+- Attachment B: Architectural Floor Plan (Drawing A-101)
+- Attachment C: MEP Coordination Plan (Drawing M-101)
+- Attachment D: Plumbing Plan and Riser Diagrams (Drawings P-101, P-102, P-201)
+- Attachment E: Site Plan with Grease Interceptor Location (Drawing C-101)
+- Attachment F: Specifications — Division 22 Plumbing (Sections 220500 through 221500)
+- Attachment G: Prevailing Wage Rate Schedule — Collin County 2026
+- Attachment H: Geotechnical Report Summary (soil conditions at interceptor location)
+- Attachment I: Sample Subcontract Agreement
 
 Bid Date: May 22, 2026 | Start Date: June 2, 2026 | Completion: 8 weeks from NTP | LDs: $500/day
 Requirements: TX Master Plumber license, 3+ years commercial experience, $1M GL / $2M umbrella insurance, prevailing wage, bonded`;
