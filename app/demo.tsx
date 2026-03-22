@@ -220,69 +220,94 @@ function RenderAnalysis({ text }: { text: string }) {
 /* ── RFP Document renderer (paper-style) ── */
 function RenderRFPDocument({ text }: { text: string }) {
   if (!text) return null;
-  const lines = text.split("\n").map(l => l.trim()).filter(Boolean);
-  // First line: title, rest: pipe-separated fields
-  const titleLine = lines[0] || "";
-  const titleMatch = titleLine.match(/^INVITATION TO BID:\s*(.+)/i);
-  const title = titleMatch ? titleMatch[1] : titleLine;
 
-  // Parse remaining lines for key-value fields
-  const fields: { label: string; value: string }[] = [];
-  let requirements = "";
-  for (let i = 1; i < lines.length; i++) {
-    const parts = lines[i].split("|").map(p => p.trim()).filter(Boolean);
-    for (const part of parts) {
-      const colonIdx = part.indexOf(":");
-      if (colonIdx > 0) {
-        const label = part.slice(0, colonIdx).trim();
-        const value = part.slice(colonIdx + 1).trim();
-        if (label.toLowerCase() === "requirements") {
-          requirements = value;
-        } else {
-          fields.push({ label, value });
+  // Parse sections separated by blank lines, first line is title
+  const blocks = text.split("\n\n").map(b => b.trim()).filter(Boolean);
+  const elements: any[] = [];
+  let key = 0;
+
+  for (const block of blocks) {
+    // SECTION HEADERS (all-caps lines like "SCOPE OF WORK", "PROJECT DETAILS")
+    if (/^[A-Z][A-Z &\/]+$/.test(block.trim())) {
+      elements.push(
+        <p key={key++} style={{ fontSize: 11, fontWeight: 700, color: theme.textSecondary, textTransform: "uppercase", letterSpacing: "0.1em", margin: "28px 0 12px", borderTop: `1px solid ${theme.borderLight}`, paddingTop: 20 }}>{block}</p>
+      );
+      continue;
+    }
+
+    // TITLE LINE: "INVITATION TO BID: ..."
+    const titleMatch = block.match(/^INVITATION TO BID:\s*(.+)/i);
+    if (titleMatch) {
+      elements.push(
+        <div key={key++} style={{ borderBottom: `2px solid ${theme.textPrimary}`, paddingBottom: 20, marginBottom: 24 }}>
+          <p style={{ fontSize: 11, fontWeight: 600, color: theme.textSecondary, textTransform: "uppercase", letterSpacing: "0.1em", marginBottom: 8 }}>Invitation to Bid</p>
+          <h1 style={{ fontSize: 22, fontWeight: 700, color: theme.textPrimary, letterSpacing: "-0.02em", lineHeight: 1.3, margin: 0 }}>{titleMatch[1]}</h1>
+        </div>
+      );
+      continue;
+    }
+
+    // PIPE-DELIMITED FIELDS: "GC: Foo | Bid Date: Bar | ..."
+    if (block.includes("|") && block.includes(":")) {
+      const parts = block.split("|").map(p => p.trim()).filter(Boolean);
+      const fields: { label: string; value: string }[] = [];
+      for (const part of parts) {
+        const colonIdx = part.indexOf(":");
+        if (colonIdx > 0) {
+          fields.push({ label: part.slice(0, colonIdx).trim(), value: part.slice(colonIdx + 1).trim() });
         }
       }
-    }
-  }
-
-  const reqList = requirements ? requirements.split(",").map(r => r.trim()).filter(Boolean) : [];
-
-  return (
-    <div style={{ fontFamily: theme.fontFamily }}>
-      {/* Document header */}
-      <div style={{ borderBottom: `2px solid ${theme.textPrimary}`, paddingBottom: 20, marginBottom: 32 }}>
-        <p style={{ fontSize: 11, fontWeight: 600, color: theme.textSecondary, textTransform: "uppercase", letterSpacing: "0.1em", marginBottom: 8 }}>Invitation to Bid</p>
-        <h1 style={{ fontSize: 22, fontWeight: 700, color: theme.textPrimary, letterSpacing: "-0.02em", lineHeight: 1.3, margin: 0 }}>{title}</h1>
-      </div>
-
-      {/* Fields grid */}
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "24px 40px", marginBottom: 36 }}>
-        {fields.map((f, i) => (
-          <div key={i}>
-            <p style={{ fontSize: 10, fontWeight: 600, color: theme.textTertiary, textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: 4 }}>{f.label}</p>
-            <p style={{ fontSize: 15, fontWeight: 600, color: theme.textPrimary, margin: 0 }}>{f.value}</p>
-          </div>
-        ))}
-      </div>
-
-      {/* Requirements section */}
-      {reqList.length > 0 && (
-        <div>
-          <p style={{ fontSize: 10, fontWeight: 600, color: theme.textTertiary, textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: 12, borderTop: `1px solid ${theme.borderLight}`, paddingTop: 20 }}>Requirements</p>
-          <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
-            {reqList.map((r, i) => (
-              <span key={i} style={{ padding: "5px 12px", borderRadius: theme.radiusPill, background: theme.divider, fontSize: 12, fontWeight: 500, color: theme.textPrimary }}>{r}</span>
+      if (fields.length > 0) {
+        elements.push(
+          <div key={key++} style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "20px 40px", marginBottom: 20 }}>
+            {fields.map((f, i) => (
+              <div key={i}>
+                <p style={{ fontSize: 10, fontWeight: 600, color: theme.textTertiary, textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: 4 }}>{f.label}</p>
+                <p style={{ fontSize: 14, fontWeight: 600, color: theme.textPrimary, margin: 0 }}>{f.value}</p>
+              </div>
             ))}
           </div>
-        </div>
-      )}
+        );
+        continue;
+      }
+    }
 
-      {/* Page footer */}
-      <div style={{ marginTop: 48, paddingTop: 16, borderTop: `1px solid ${theme.borderLight}`, textAlign: "center" }}>
-        <p style={{ fontSize: 10, color: theme.textTertiary }}>Page 1 of 1</p>
-      </div>
+    // NUMBERED OR BULLETED ITEMS
+    const listLines = block.split("\n").filter(l => /^[\d•\-]/.test(l.trim()));
+    if (listLines.length > 1) {
+      elements.push(
+        <div key={key++} style={{ margin: "8px 0 16px" }}>
+          {block.split("\n").map((line, i) => {
+            const t = line.trim();
+            if (!t) return null;
+            const bullet = /^[\d]+[.)]\s*/.test(t) || /^[•\-]\s*/.test(t);
+            const cleaned = t.replace(/^[\d]+[.)]\s*/, "").replace(/^[•\-]\s*/, "");
+            return bullet ? (
+              <div key={i} style={{ display: "flex", gap: 8, padding: "4px 0", fontSize: 13.5, lineHeight: 1.6, color: theme.textPrimary }}>
+                <span style={{ color: theme.textTertiary, flexShrink: 0 }}>•</span>
+                <span>{cleaned}</span>
+              </div>
+            ) : (
+              <p key={i} style={{ fontSize: 13.5, lineHeight: 1.6, color: theme.textPrimary, margin: "4px 0" }}>{t}</p>
+            );
+          })}
+        </div>
+      );
+      continue;
+    }
+
+    // REGULAR PARAGRAPHS
+    elements.push(<p key={key++} style={{ fontSize: 13.5, lineHeight: 1.7, color: theme.textPrimary, margin: "8px 0" }}>{block}</p>);
+  }
+
+  // Page footer
+  elements.push(
+    <div key={key++} style={{ marginTop: 48, paddingTop: 16, borderTop: `1px solid ${theme.borderLight}`, textAlign: "center" }}>
+      <p style={{ fontSize: 10, color: theme.textTertiary }}>Page 1 of 1</p>
     </div>
   );
+
+  return <>{elements}</>;
 }
 
 /* ── Bid Summary metrics (right panel on bid step) ── */
@@ -292,23 +317,23 @@ function RenderBidSummary() {
       {/* Score */}
       <div style={{ background: theme.textPrimary, color: "#fff", padding: "14px 20px", borderRadius: theme.radiusMd, fontSize: 15, fontWeight: 700, display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
         <span>Bid Score</span>
-        <span style={{ color: "#ffd60a" }}>45/50 — STRONG BID</span>
+        <span style={{ color: "#ffd60a" }}>43/50 — STRONG BID</span>
       </div>
 
       {/* Price */}
       <div style={{ background: theme.bgCard, borderRadius: theme.radiusMd, padding: "16px 20px", boxShadow: theme.shadowSm, marginBottom: 12 }}>
         <p style={{ fontSize: 10, fontWeight: 600, color: theme.textTertiary, textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: 4 }}>Total Base Bid</p>
-        <p style={{ fontSize: 24, fontWeight: 700, color: theme.textPrimary, margin: 0, fontFamily: theme.fontMono }}>$1,880,000</p>
+        <p style={{ fontSize: 24, fontWeight: 700, color: theme.textPrimary, margin: 0, fontFamily: theme.fontMono }}>$98,400</p>
       </div>
 
       {/* Status pills */}
       <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
         {[
           { label: "Crew Available", type: "pass" as const },
-          { label: "Bonding OK", type: "pass" as const },
+          { label: "Licensed & Insured", type: "pass" as const },
           { label: "EMR 0.78", type: "pass" as const },
-          { label: "New GC", type: "warn" as const },
-          { label: "12-mo Schedule", type: "pass" as const },
+          { label: "New PM Firm", type: "warn" as const },
+          { label: "8-wk Schedule", type: "pass" as const },
         ].map((item, i) => {
           const colors = item.type === "pass"
             ? { bg: theme.statusGreenBg, color: theme.statusGreenText, border: theme.statusGreenBorder }
@@ -325,59 +350,57 @@ function RenderBidSummary() {
 /* ── Data constants ── */
 const PREBAKED_ANALYSIS = `✅ You should bid on this.
 
-This is right in your wheelhouse — hospital plumbing and medical gas, the exact scope you crushed at Methodist Dallas.
+This is a bread-and-butter commercial plumbing remodel — almost identical to the Legacy West restaurant build-outs you did last year. Great fit.
 
 REQUIREMENTS MATCH
 
-✅ Hospital medical gas (5+ projects) — You have 6 including Methodist Dallas, Baylor S&W McKinney, and Children's Health Plano clinic.
-✅ NFPA 99 certified brazers (min 4) — You have 6: Whitfield, Vasquez, Torres, Sanchez, Park, Ramirez.
-✅ ASME Section IX welders — You have 4 qualified welders on staff.
-✅ EMR below 1.0 — Yours is 0.78 with zero lost-time incidents in 2024 and 2025.
-✅ BIM Level 2 / LOD 350 — David Okonkwo delivers LOD 350 as standard. Done on Methodist Dallas.
-✅ Bonding capacity — Project est. $1.5–2.2M, well within your $8M single limit.
-✅ Insurance — Your $2M GL + $5M umbrella meets all requirements.
+✅ TX Master Plumber license — Carlos Espinoza holds MP-38824, active through 2027.
+✅ Commercial plumbing experience (3+ yrs) — You have 12+ years of commercial work across 40+ projects.
+✅ Insurance requirements — Your $2M GL + $5M umbrella exceeds their $1M/$2M minimums.
+✅ Bonding capacity — Project est. $85–110K, well within your $8M single limit.
 ✅ Prevailing wage — Davis-Bacon is standard for you. Certified payroll set up.
-✅ Background checks — CJIS-level done for Methodist Dallas. Same process.
-⚠️ DPR Construction — New GC for you. Strong firm but no existing relationship yet.
-⚠️ Pediatric surgical — You did Children's Health clinic ($380K) but not a surgical suite. Methodist Dallas ORs are closest comp.
-✅ 12-month schedule — Methodist Dallas was 14 months for a bigger scope. Very doable.
+✅ Grease interceptor experience — Installed 12 grease traps for Legacy West restaurant row ($1.6M project).
+⚠️ Whitmore Property Group — New PM firm for you. Mid-size but no existing relationship yet.
+✅ 8-week timeline — Legacy West restaurant build-outs averaged 5 weeks each. Very doable.
+✅ ADA compliance — Frisco ISD project had 42 ADA fixture groups. You know the code.
+⚠️ Weekend/after-hours work — May be required to avoid disrupting adjacent tenants. Adds OT cost.
 
 SCORECARD
 
-1. Right size? — 5/5 — Est. $1.5–2.2M, dead center of sweet spot
-2. Scope match? — 5/5 — Plumbing + med gas is your #1 specialty
-3. Crew available? — 5/5 — Roberto, James, Daniel, Miguel all free April 15
-4. GC relationship? — 3/5 — DPR is new but you have strong comparable refs
-5. Sector experience? — 4/5 — Strong hospital history, slight pediatric gap
-6. Schedule risk? — 4/5 — 12 months realistic based on Methodist timeline
-7. Competition? — 4/5 — Mid-size med gas shops are rare at this level
+1. Right size? — 5/5 — Est. $85–110K, sweet spot for your crew size
+2. Scope match? — 5/5 — Commercial plumbing remodel is your bread and butter
+3. Crew available? — 4/5 — Daniel Torres and team free mid-May, Roberto wrapping McKinney
+4. PM relationship? — 3/5 — Whitmore is new but you have strong comparable refs
+5. Sector experience? — 5/5 — Extensive restaurant and retail plumbing history
+6. Schedule risk? — 4/5 — 8 weeks is comfortable based on similar scope
+7. Competition? — 4/5 — Licensed shops with grease trap experience are limited
 8. Bonding? — 5/5 — Well within capacity
-9. Geography? — 5/5 — Plano TX, 25 min from your office
-10. Strategic value? — 5/5 — Children's Health is a marquee client
+9. Geography? — 5/5 — Frisco TX, 20 min from your office
+10. Strategic value? — 3/5 — Good repeat potential if Whitmore develops more retail
 
-Total: 45/50 — STRONG BID
+Total: 43/50 — STRONG BID
 
 TOP 3 RISKS
-1. New GC relationship with DPR — mitigate with strong Robins & Morton and Skanska references.
-2. Pediatric surgical is a step up from your clinic work — ICRA Class IV and pediatric-specific outlets add complexity.
-3. Third-party verification with Smith Medical Gas — you've done this (Methodist Dallas) but it adds schedule pressure.
+1. New relationship with Whitmore Property Group — mitigate with strong Rogers-O'Brien and Skanska references.
+2. After-hours work requirement could push labor costs 15–20% on some phases — price accordingly.
+3. Existing building conditions unknown — old slab plumbing may add demo and rerouting scope.
 
-ESTIMATED PRICE RANGE: $1,650,000 – $2,100,000
-Based on Methodist Dallas ($2.4M / 180,000 SF) scaled to 22,000 SF with comparable med gas density.`;
+ESTIMATED PRICE RANGE: $85,000 – $110,000
+Based on Legacy West restaurant build-outs ($38–52K per unit) scaled to 3,200 SF with full kitchen and bar rough-in.`;
 
 const PREBAKED_BID = `# Ironflow Mechanical, Inc. — Bid Response
-## Children's Health Plano — Surgical Suite Expansion (CHP-2026-SS-MEP)
-## Submitted: April 24, 2026
+## The Warren at Hall Park — Restaurant Plumbing Remodel (WHP-2026-PLM)
+## Submitted: May 20, 2026
 
 ---
 
 ## 1. Executive Summary
 
-Ironflow Mechanical is pleased to submit this proposal for the plumbing and medical gas systems at the Children's Health Plano Surgical Suite Expansion. With six certified medical gas installers on staff and four completed hospital medical gas projects in the past three years — including the **$2.4M Methodist Dallas Patient Tower** with four operating suites — we bring proven healthcare capability to this pediatric-critical project.
+Ironflow Mechanical is pleased to submit this proposal for the complete plumbing rough-in and finish for the restaurant tenant space at The Warren at Hall Park. With over 12 years of commercial plumbing experience and a strong track record in restaurant and food-service build-outs — including **six restaurant spaces at Legacy West** totaling **$1.6M** — we bring proven capability for this scope.
 
-Our team is uniquely positioned for this work. **Superintendent Roberto Vasquez** and **Medical Gas Lead James Whitfield**, who together delivered the Methodist Dallas project two weeks ahead of schedule, are both available for mobilization in mid-April. Our in-house BIM team, led by **David Okonkwo**, will deliver a LOD 350 Revit model and participate in weekly coordination with DPR — the same approach that identified **47 MEP clashes** at UT Southwestern before a single pipe was installed.
+**Foreman Daniel Torres**, who led our Legacy West restaurant plumbing work, is available for mobilization in mid-May. Daniel has installed grease interceptors, commercial kitchen rough-ins, and bar plumbing for over 20 restaurant spaces in the DFW area. Our team understands the unique demands of food-service plumbing — proper grease management, indirect waste connections, and health department compliance.
 
-We understand the critical nature of pediatric surgical environments. Our proposal reflects ICRA Class IV compliance, NFPA 99 Category 1 medical gas installation, and the specialized care required when working adjacent to occupied patient areas.
+We are committed to completing this project within the 8-week timeline while working around adjacent occupied tenants as needed.
 
 ---
 
@@ -387,117 +410,87 @@ We understand the critical nature of pediatric surgical environments. Our propos
 
 | Line Item | Amount |
 |---|---|
-| Base Bid — Plumbing | $1,185,000 |
-| Base Bid — Medical Gas | $695,000 |
-| **Total Base Bid** | **$1,880,000** |
+| Plumbing Rough-In (Kitchen + Bar + Restrooms) | $52,400 |
+| Grease Interceptor & Waste Lines | $14,800 |
+| Fixture Installation & Trim | $18,200 |
+| Testing, Inspections & Closeout | $4,600 |
+| **Total Base Bid** | **$90,000** |
 
-### Alternates and Unit Prices
+### Alternates
 
 | Item | Amount |
 |---|---|
-| Alt #1 — RFID-tagged medical gas outlets | $42,000 |
-| Alt #2 — Antimicrobial copper piping (patient areas) | $68,000 |
-| Unit Price A — Additional med gas outlet (each) | $2,400 |
-| Unit Price B — Additional OR scrub sink (each) | $8,800 |
-| Unit Price C — Additional headwall rough-in (each) | $6,200 |
+| Alt #1 — Tankless water heater upgrade (Rinnai commercial) | $4,200 |
+| Alt #2 — Point-of-use hot water recirculation (bar area) | $2,800 |
+| Alt #3 — Floor sink with indirect waste for walk-in cooler | $1,400 |
 
 ### Labor Breakdown
 
-| Classification | Hours | Rate (Prevailing) | Extended |
+| Classification | Hours | Rate | Extended |
 |---|---|---|---|
-| Superintendent | 1,800 | $78.50/hr | $141,300 |
-| Foreman — Plumbing | 2,200 | $74.20/hr | $163,240 |
-| Foreman — Medical Gas | 1,400 | $78.50/hr | $109,900 |
-| Journeyman Plumber | 4,800 | $62.40/hr | $299,520 |
-| Medical Gas Brazer | 2,800 | $70.80/hr | $198,240 |
-| Apprentice (4th year) | 2,400 | $45.60/hr | $109,440 |
-| BIM Technician | 480 | $55.00/hr | $26,400 |
-| **Total Labor** | **15,880** | | **$1,048,040** |
+| Foreman | 320 | $68.00/hr | $21,760 |
+| Journeyman Plumber | 480 | $58.00/hr | $27,840 |
+| Apprentice (3rd year) | 240 | $38.00/hr | $9,120 |
+| **Total Labor** | **1,040** | | **$58,720** |
 
 ### Material Breakdown
 
 | Category | Amount |
 |---|---|
-| Copper pipe and fittings (Type L) | $142,000 |
-| Cast iron pipe (no-hub) | $68,000 |
-| Polypropylene acid waste piping | $24,000 |
-| Plumbing fixtures | $118,000 |
-| Medical gas pipe (Type K copper) | $86,000 |
-| Zone valve boxes, outlets, alarms | $112,000 |
-| Thermostatic mixing valves (ASSE 1070) | $18,000 |
-| Floor drains, trap primers, cleanouts | $22,000 |
-| Backflow preventers | $16,000 |
-| Hangers, supports, insulation, sealants | $48,000 |
-| **Total Material** | **$654,000** |
+| Copper pipe and fittings (Type L) | $6,200 |
+| Cast iron pipe (no-hub) | $3,400 |
+| PVC DWV pipe and fittings | $2,100 |
+| Grease interceptor (50 GPM, Schier GB-50) | $3,800 |
+| Commercial fixtures (sinks, faucets, floor drains) | $8,400 |
+| Water heater (AO Smith 75-gal commercial) | $2,600 |
+| Backflow preventer (Watts 009) | $1,200 |
+| Hangers, supports, insulation, sealants | $1,580 |
+| **Total Material** | **$29,280** |
 
 ### Overhead
 
 | Item | Amount |
 |---|---|
-| Equipment and tools | $28,000 |
-| Bond premium (3.5%) | $65,800 |
-| Project insurance (2.5%) | $47,000 |
-| Permit fees | $8,000 |
-| Mobilization | $6,000 |
-| ICRA compliance setup | $12,000 |
-| OH&P | $11,160 |
-| **Total Overhead** | **$177,960** |
+| Permit fees (City of Frisco) | $1,200 |
+| Bond premium | $400 |
+| Mobilization & cleanup | $800 |
+| OH&P | $5,200 |
+| **Total Overhead** | **$7,600** |
 
 ---
 
 ## 3. Qualifications & Experience
 
-**Methodist Dallas Medical Center — Patient Tower Expansion**
-$2,378,000 | GC: Robins & Morton | 2024
-180,000 SF, 6-story. Full plumbing + medical gas for 120 rooms and 4 OR suites. Completed 2 weeks ahead of schedule. Zero safety incidents. 68 BIM clashes resolved pre-construction.
+**Legacy West — Restaurant Row Build-Outs (6 units)**
+$1,600,000 | PM: Trademark Property | 2024–2025
+Full plumbing for six restaurant tenant spaces including commercial kitchens, bars, and restrooms. Grease interceptors, indirect waste, hood wash connections. Completed all units on schedule.
 
-**Baylor Scott & White McKinney Medical Center**
+**Baylor Scott & White McKinney — Medical Office Building**
 $1,180,000 | GC: Skanska | 2023
-90,000 SF MOB. Plumbing, medical gas (200+ outlets), HVAC piping. Added to Skanska's DFW preferred list.
-
-**Children's Health Plano — Outpatient Clinic**
-$380,000 | GC: Rogers-O'Brien | 2024
-Medical gas installation for outpatient procedure rooms. Direct experience with Children's Health standards.
-
-**UT Southwestern — Research Lab Fit-Out**
-$684,000 | GC: Linbeck Group | 2024
-Acid waste, DI water, compressed air, lab gas. 12 MEP trades in 14" ceiling — 47 clashes caught in BIM.
+90,000 SF. Full plumbing including ADA restrooms, break rooms, and lab fixtures.
 
 **Frisco ISD — Lone Star High School**
 $892,000 | GC: Pogue Construction | 2024
 42 ADA fixture groups, 14 restrooms. Completed in 7 of 8 available weeks.
 
----
-
-## 4. Medical Gas Qualifications
-
-| Name | Certification | Cert Number | Experience |
-|---|---|---|---|
-| James Whitfield | NFPA 99 + ASME IX | MG-2019-441 | 12 years |
-| Roberto Vasquez | NFPA 99 + ASME IX | MG-2020-512 | 14 years |
-| Daniel Torres | NFPA 99 | MG-2021-603 | 10 years |
-| Miguel Sanchez | NFPA 99 + ASME IX | MG-2021-618 | 9 years |
-| Kevin Park | NFPA 99 | MG-2022-705 | 7 years |
-| Luis Ramirez | NFPA 99 | MG-2023-801 | 6 years |
-
-All brazing performed with nitrogen purge per NFPA 99. We have coordinated third-party verification with **Smith Medical Gas Verification** on Methodist Dallas and are familiar with their 48-hour standing time protocol.
+**Amazon DFW3 — Warehouse Break Rooms**
+$420,000 | GC: Clayco | 2024
+12 break room plumbing rough-ins across 180,000 SF distribution center. Tight timeline, zero punch items.
 
 ---
 
-## 5. Proposed Project Team
+## 4. Proposed Project Team
 
 | Role | Name | Experience | Certifications |
 |---|---|---|---|
-| Project Manager | Carlos Espinoza | 18 years | JP, OSHA 30 |
-| Superintendent | Roberto Vasquez | 14 years | JP, NFPA 99, ASME IX, OSHA 30 |
-| Foreman — Med Gas | James Whitfield | 12 years | JP, NFPA 99, ASME IX, OSHA 30 |
-| Foreman — Plumbing | Daniel Torres | 10 years | JP, NFPA 99, OSHA 30 |
-| BIM Lead | David Okonkwo | 6 years | Revit MEP, Navisworks |
-| Med Gas Brazers | Sanchez, Park | 9 / 7 years | NFPA 99, OSHA 10 |
+| Project Manager | Carlos Espinoza | 18 years | Master Plumber MP-38824, OSHA 30 |
+| Foreman | Daniel Torres | 10 years | Journeyman Plumber, OSHA 30 |
+| Journeyman | Miguel Sanchez | 9 years | Journeyman Plumber, OSHA 10 |
+| Apprentice | Luis Ramirez | 6 years | 3rd Year Apprentice, OSHA 10 |
 
 ---
 
-## 6. Safety Record
+## 5. Safety Record
 
 | Metric | Ironflow | Industry Avg |
 |---|---|---|
@@ -507,51 +500,60 @@ All brazing performed with nitrogen purge per NFPA 99. We have coordinated third
 | Lost-time incidents (2025) | 0 | — |
 | OSHA TRIR | 1.46 | 3.40 |
 
-All supers and foremen: OSHA 30. All field: OSHA 10 + CPR/First Aid. ISNetworld Grade A, Avetta compliant, PICS compliant. CJIS background checks available. Drug testing: pre-employment + random.
-
-Hospital experience with ICRA Class III/IV on Methodist Dallas — negative pressure, HEPA filtration, daily barrier inspections.
+All supers and foremen hold OSHA 30. All field staff: OSHA 10 + CPR/First Aid. ISNetworld Grade A. Drug testing: pre-employment + random.
 
 ---
 
-## 7. BIM/VDC Approach
+## 6. Schedule
 
-- **LOD 350 Revit model** delivered within 4 weeks of NTP
-- **Weekly BIM coordination** with DPR's VDC team
-- **Clash detection** — 90%+ clashes resolved before field work (47 found at UTSW, 68 at Methodist Dallas)
-- **Prefabrication** — med gas risers and water rack assemblies built in our 4,000 SF Dallas shop, reducing field labor 15-20%
-
----
-
-## 8. Schedule
-
-| Phase | Months | Key Activities |
+| Phase | Weeks | Key Activities |
 |---|---|---|
-| Mobilization & Underground | 1–2 | BIM model, underground rough-in, ICRA setup |
-| Med Gas Rough-In | 3–5 | OR and pre/post-op med gas piping, zone valves |
-| Above-Grade Plumbing | 5–7 | Domestic water, sanitary waste, acid waste |
-| Fixture & Trim | 7–9 | Scrub sinks, headwalls, restroom fixtures |
-| Testing & Commissioning | 9–11 | 48-hr pressure tests, purity, cross-connection |
-| Verification & Punch | 11–12 | Smith Medical Gas verification, punch, close-out |
+| Mobilization & Demo | 1 | Permits, demo existing plumbing, slab cutting |
+| Underground Rough-In | 2–3 | Waste lines, grease interceptor, water service |
+| Above-Slab Rough-In | 4–5 | Supply lines, vent stacks, gas piping stubs |
+| Fixture & Trim | 6–7 | Kitchen sinks, bar sinks, faucets, restroom fixtures |
+| Testing & Closeout | 8 | Pressure tests, health dept inspection, punch list |
 
-Methodist Dallas (14 months planned) was completed in 13.5 months. We can accelerate by 2 weeks if needed.
+Legacy West restaurant spaces (comparable scope) averaged 5 weeks each. The 8-week timeline provides comfortable margin.
 
 ---
 
-## 9. References
+## 7. References
 
-| GC | Contact | Project |
+| Client/PM | Contact | Project |
 |---|---|---|
-| Robins & Morton | Austin Reed, Sr. PM — (615) 555-0188 | Methodist Dallas ($2.4M) |
+| Trademark Property | Sarah Chen, Dev. Mgr — (972) 555-0312 | Legacy West Restaurants ($1.6M) |
 | Skanska USA | Jennifer Walsh, PM — (214) 555-0233 | Baylor S&W McKinney ($1.2M) |
-| Rogers-O'Brien | David Mullins, PM — (972) 555-0199 | Children's Health Plano ($380K) |`;
+| Pogue Construction | Mark Davis, PM — (469) 555-0177 | Frisco ISD ($892K) |`;
 
 const COMPANY_CTX = `You are the AI for Ironflow Mechanical, a 38-person commercial plumbing contractor in Dallas, TX. Answer follow-ups using real company data. Be conversational and specific. Use real names and numbers.
 
-Key data: $14.8M revenue, 6 NFPA 99 brazers, EMR 0.78, bonding $8M/$20M. Won: Methodist Dallas $2.4M, Legacy West $1.6M, BSW McKinney $1.2M, Frisco ISD $892K, UTSW Lab $684K, Amazon DFW3 $420K. Lost: Parkland $5.1M (too big), Amazon DFW2 $440K (OT pricing). Rates: journeyman $58/hr ($82 burdened), foreman $68/hr, brazer $65/hr. Margin avg 16.3%. Team: Roberto Vasquez (super), James Whitfield (med gas lead), Daniel Torres (foreman), Carlos Espinoza (VP ops), David Okonkwo (BIM), Rachel Kim (estimating).`;
+Key data: $14.8M revenue, EMR 0.78, bonding $8M/$20M. Won: Legacy West Restaurants $1.6M, BSW McKinney $1.2M, Frisco ISD $892K, UTSW Lab $684K, Amazon DFW3 $420K. Lost: Parkland $5.1M (too big), Amazon DFW2 $440K (OT pricing). Rates: journeyman $58/hr ($82 burdened), foreman $68/hr. Margin avg 16.3%. Team: Roberto Vasquez (super), Daniel Torres (foreman), Carlos Espinoza (VP ops/PM, Master Plumber MP-38824), Miguel Sanchez (journeyman), Luis Ramirez (apprentice), Rachel Kim (estimating). Current project: The Warren at Hall Park restaurant plumbing remodel, ~$90K, 3,200 SF restaurant space, 8-week timeline.`;
 
-const SAMPLE_RFP = `INVITATION TO BID: Plumbing & Medical Gas — Children's Health Plano Surgical Suite Expansion
-GC: DPR Construction | Bid Date: April 25, 2026 | 22,000 SF, 4 pediatric ORs, 12 pre/post-op bays
-Requirements: NFPA 99 Cat 1 med gas, 5+ hospital projects, 4+ certified brazers, EMR <1.0, BIM LOD 350, prevailing wage, 12-month schedule, $3,500/day LDs`;
+const SAMPLE_RFP = `INVITATION TO BID: Plumbing — Restaurant Tenant Build-Out at The Warren at Hall Park
+
+Owner: Whitmore Property Group | PM: Whitmore Property Group | Bid Date: May 22, 2026
+Location: 3100 Hall Park Blvd, Frisco, TX 75034 | Size: 3,200 SF | Occupancy: Restaurant (A-2)
+
+PROJECT DETAILS
+
+The Warren at Hall Park is a mixed-use development in Frisco, TX. This bid covers the complete plumbing scope for a new restaurant tenant space on the ground floor. The space will include a full commercial kitchen, bar area with ice bins and glass washers, two ADA-compliant restrooms, and a mop closet.
+
+SCOPE OF WORK
+
+1. Demolition and removal of existing plumbing within the tenant space
+2. Underground rough-in: new sanitary waste lines, water service from existing main, grease waste line to interceptor
+3. Grease interceptor installation (50 GPM minimum, exterior or below-grade)
+4. Above-slab plumbing rough-in for kitchen, bar, and restrooms
+5. Domestic hot and cold water distribution
+6. Gas piping stubs to kitchen equipment locations (coordination with MEP)
+7. Fixture installation: 3-compartment sink, prep sink, hand sinks (3), mop sink, bar sink, 2 restroom groups (ADA)
+8. Water heater installation (75-gallon minimum, commercial grade)
+9. Backflow prevention as required by City of Frisco
+10. All required testing, inspections, and health department sign-off
+
+Bid Date: May 22, 2026 | Start Date: June 2, 2026 | Completion: 8 weeks from NTP | LDs: $500/day
+Requirements: TX Master Plumber license, 3+ years commercial experience, $1M GL / $2M umbrella insurance, prevailing wage, bonded`;
 
 /* ── Main App ── */
 export default function App() {
@@ -638,8 +640,8 @@ export default function App() {
   const showAnalysis = analysis || (typingFor === "analysis" ? displayText : "");
   const showBid = bidDoc || (typingFor === "bid" ? displayText : "");
   const suggestions = bidDoc
-    ? ["Lower the base bid by 5%", "Strengthen the medical gas section", "Add more schedule detail", "Shorten the executive summary"]
-    : ["Draft just the safety section", "What crew should we assign?", "How does pricing compare to Methodist Dallas?", "What are the biggest risks?"];
+    ? ["Lower the base bid by 5%", "Add the tankless water heater alternate", "Add more schedule detail", "Shorten the executive summary"]
+    : ["What crew should we assign?", "How does pricing compare to Legacy West?", "What are the biggest risks?", "Can we do this in 6 weeks?"];
 
   const inSplit = step === "analysis" || step === "bid";
 
@@ -715,7 +717,7 @@ export default function App() {
           <button onClick={runDemo} style={{ padding: "14px 28px", borderRadius: theme.radiusPill, border: "none", background: theme.blue, color: "#fff", fontSize: 14, fontWeight: 600, cursor: "pointer", width: "100%", transition: `all ${theme.transition}`, letterSpacing: "-0.01em" }}
             onMouseOver={e => { e.currentTarget.style.background = theme.blueHover; }}
             onMouseOut={e => { e.currentTarget.style.background = theme.blue; }}>
-            Try demo — Children's Health Plano Surgical Suite
+            Try demo — Restaurant Build-Out at The Warren, Frisco
           </button>
         </div>
       )}
